@@ -1,0 +1,57 @@
+<svg
+  width="56"
+  height="56"
+  viewBox="0 0 56 56"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!-- Icon background -->
+  <rect
+    x="4"
+    y="4"
+    width="48"
+    height="48"
+    rx="14"
+    fill="#020617"
+  />
+
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="financeGradient" x1="4" y1="4" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22C55E"/>
+      <stop offset="1" stop-color="#0EA5E9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Gradient frame -->
+  <rect
+    x="6.5"
+    y="6.5"
+    width="43"
+    height="43"
+    rx="12"
+    stroke="url(#financeGradient)"
+    stroke-width="2"
+  />
+
+  <!-- Candles/bars -->
+  <rect x="16" y="30" width="4" height="12" rx="1.5" fill="#22C55E"/>
+  <rect x="24" y="24" width="4" height="18" rx="1.5" fill="#4ADE80"/>
+  <rect x="32" y="20" width="4" height="22" rx="1.5" fill="#86EFAC"/>
+
+  <!-- Trend arrow -->
+  <path
+    d="M18 26L27 19.5L32 22.5L39.5 15"
+    stroke="#38BDF8"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M36.5 14.5H40V18"
+    stroke="#38BDF8"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
