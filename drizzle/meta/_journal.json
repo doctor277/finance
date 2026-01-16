@@ -8,6 +8,13 @@
       "when": 1765487118258,
       "tag": "0000_lively_prima",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1768584486101,
+      "tag": "0001_thankful_starjammers",
+      "breakpoints": true
     }
   ]
 }
