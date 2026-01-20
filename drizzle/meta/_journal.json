@@ -15,6 +15,13 @@
       "when": 1768584486101,
       "tag": "0001_thankful_starjammers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768863304008,
+      "tag": "0002_pretty_polaris",
+      "breakpoints": true
     }
   ]
 }
