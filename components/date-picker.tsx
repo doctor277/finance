@@ -36,7 +36,7 @@ export const DatePicker = ({ value, onChange, disabled }: Props) => {
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-auto p-0 z-[9999]"
+        className="w-auto p-0 z-9999"
         align="start"
         sideOffset={8}
       >
