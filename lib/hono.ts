@@ -1,5 +1,10 @@
-import { hc} from "hono/client";
+import { hc } from "hono/client";
+import type { AppType } from "@/app/api/[[...route]]/route";
 
-import {AppType} from "@/app/api/[[...route]]/route";
+const baseUrl =
+  process.env.NEXT_PUBLIC_APP_URL ??
+  (typeof window !== "undefined"
+    ? window.location.origin
+    : "http://localhost:3000");
 
-export const client = hc<AppType>(process.env.NEXT_PUBLIC_APP_URL!);
+export const client = hc<AppType>(baseUrl);

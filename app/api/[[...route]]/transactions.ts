@@ -46,7 +46,7 @@ const app = new Hono()
       const data = await db
         .select({
           id: transactions.id,
-          data: transactions.date,
+          date: transactions.date,
           category: categories.name,
           categoryId: transactions.categoryId,
           payee: transactions.payee,
@@ -95,7 +95,7 @@ const app = new Hono()
       const [data] = await db
         .select({
           id: transactions.id,
-          data: transactions.date,
+          date: transactions.date,
           categoryId: transactions.categoryId,
           payee: transactions.payee,
           amount: transactions.amount,

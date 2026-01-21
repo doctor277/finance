@@ -40,7 +40,7 @@ export const AccountForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
   });
-  
+
   const handleSubmit = (values: FormValues) => {
     onSubmit(values);
   };
@@ -65,12 +65,13 @@ export const AccountForm = ({
                   disabled={disabled}
                   placeholder="e.g. Cash, Bank, Credit Card"
                   {...field}
-                ></Input>
+                />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         ></FormField>
-        <Button className="w-full" disabled={disabled}>
+        <Button type="submit" className="w-full" disabled={disabled}>
           {id ? "Save changes" : "Create account"}
         </Button>
         {!!id && (

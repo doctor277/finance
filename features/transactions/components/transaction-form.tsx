@@ -16,7 +16,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { convertAmountToMiliunits } from "@/lib/utils";
 
@@ -61,7 +60,7 @@ export const TransactionForm = ({
 }: Props) => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
+    defaultValues,
   });
 
   const handleSubmit = (values: FormValues) => {
@@ -71,12 +70,14 @@ export const TransactionForm = ({
     onSubmit({
       ...values,
       amount: amountInMiliunits,
+      categoryId: values.categoryId || undefined,
     });
   };
 
   const handleDelete = () => {
     onDelete?.();
   };
+
   return (
     <Form {...form}>
       <form
@@ -98,6 +99,7 @@ export const TransactionForm = ({
             </FormItem>
           )}
         />
+
         <FormField
           name="accountId"
           control={form.control}
@@ -116,7 +118,7 @@ export const TransactionForm = ({
               </FormControl>
             </FormItem>
           )}
-        ></FormField>
+        />
 
         <FormField
           name="categoryId"
@@ -126,7 +128,7 @@ export const TransactionForm = ({
               <FormLabel>Category</FormLabel>
               <FormControl>
                 <Select
-                  placeholder="Select an category"
+                  placeholder="Select a category"
                   options={categoryOptions}
                   onCreate={onCreateCategory}
                   value={field.value}
@@ -136,7 +138,8 @@ export const TransactionForm = ({
               </FormControl>
             </FormItem>
           )}
-        ></FormField>
+        />
+
         <FormField
           name="payee"
           control={form.control}
@@ -152,7 +155,8 @@ export const TransactionForm = ({
               </FormControl>
             </FormItem>
           )}
-        ></FormField>
+        />
+
         <FormField
           name="amount"
           control={form.control}
@@ -168,7 +172,8 @@ export const TransactionForm = ({
               </FormControl>
             </FormItem>
           )}
-        ></FormField>
+        />
+
         <FormField
           name="notes"
           control={form.control}
@@ -185,10 +190,12 @@ export const TransactionForm = ({
               </FormControl>
             </FormItem>
           )}
-        ></FormField>
+        />
+
         <Button className="w-full" disabled={disabled}>
           {id ? "Save changes" : "Create transaction"}
         </Button>
+
         {!!id && (
           <Button
             type="button"
