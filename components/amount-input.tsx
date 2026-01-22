@@ -56,7 +56,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, Props>(
         </TooltipProvider>
 
         <CurrencyInput
-          getInputRef={ref as any}
+          ref={ref} // ✅ use ref, not getInputRef
           prefix="$"
           placeholder={placeholder}
           value={value}
