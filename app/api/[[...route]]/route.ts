@@ -2,9 +2,10 @@ import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { cors } from "hono/cors";
 
+import summary from "./summary";
 import categories from "./categories";
 import accounts from "./accounts";
-import transactions from "./transactions";
+import transactions from "./transactions" ;
 
 import { HTTPException } from "hono/http-exception";
 
@@ -23,6 +24,7 @@ app.use(
 );
 
 const routes = app
+  .route("/summary", summary)
   .route("/accounts", accounts)
   .route("/categories", categories)
   .route("/transactions", transactions);
