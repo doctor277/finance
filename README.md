@@ -48,7 +48,8 @@ This project uses `next/font` to automatically optimize and load **Geist**, the 
 
 ## Deploy on Vercel
 
-Deploy using the Vercel Platform. Configure environment variables (`.env.local`) before deploying.
+Deploy using the Vercel Platform.
 
-```
-```
+Make sure to configure the required environment variables
+(from `.env.local`) in the Vercel dashboard before deploying.
+
