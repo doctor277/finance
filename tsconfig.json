@@ -17,33 +17,25 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    // ⭐ Required by Next.js
-    "types": [
-      "next",
-      "next/image-types/global",
-      "node"
-    ],
-    // ⭐ For absolute imports like "@/components"
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
       ]
     },
-    // ⭐ Enables Next.js plugin for TS
     "plugins": [
       {
         "name": "next"
       }
     ]
   },
-  // ⭐ Required so Next types load correctly
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "next.config.mjs"
+    "next.config.mjs",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

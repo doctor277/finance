@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
@@ -10,7 +12,7 @@ export const useGetSummary = () => {
   const to = params.get("to") || "";
   const accountId = params.get("accountId") || "";
 
-  const query = useQuery({
+  return useQuery({
     queryKey: ["summary", { from, to, accountId }],
     queryFn: async () => {
       const response = await client.api.summary.$get({
@@ -28,11 +30,11 @@ export const useGetSummary = () => {
         incomeAmount: convertAmountFromMiliunits(data.incomeAmount),
         expensesAmount: convertAmountFromMiliunits(data.expensesAmount),
         remainingAmount: convertAmountFromMiliunits(data.remainingAmount),
-        categories: data.categories.map((category) => ({
+        categories: data.categories.map((category: any) => ({
           ...category,
           value: convertAmountFromMiliunits(category.value),
         })),
-        days: data.days.map((day) => ({
+        days: data.days.map((day: any) => ({
           ...day,
           income: convertAmountFromMiliunits(day.income),
           expenses: convertAmountFromMiliunits(day.expenses),
@@ -40,6 +42,4 @@ export const useGetSummary = () => {
       };
     },
   });
-
-  return query;
 };

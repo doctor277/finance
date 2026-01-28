@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+
+import { Suspense, useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -8,23 +9,24 @@ import { useGetTransactions } from "@/features/transactions/api/use-get-transact
 import { useBulkDeleteTransactions } from "@/features/transactions/api/use-bulk-delete-transactions";
 import { useBulkCreateTransactions } from "@/features/transactions/api/use-bulk-create-transactions";
 
-
 import { ImportCard } from "./import-card";
 import { columns } from "./columns";
 import { UploadButton } from "./upload-button";
 
 import { useSelectAccount } from "@/features/accounts/hooks/use-select-account";
-
 import { transactions as transactionSchema } from "@/db/schema";
+
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-enum VARIANTS {
-  LIST = "LIST",
-  IMPORT = "IMPORT",
-}
+const VARIANTS = {
+  LIST: "LIST",
+  IMPORT: "IMPORT",
+} as const;
+
+type VARIANTS = (typeof VARIANTS)[keyof typeof VARIANTS];
 
 const INITIAL_IMPORT_RESULTS = {
   data: [],
@@ -32,7 +34,16 @@ const INITIAL_IMPORT_RESULTS = {
   meta: {},
 };
 
-const TransactionsPage = () => {
+// ✅ Wrapper provides the Suspense boundary for anything using useSearchParams() down the tree
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TransactionsPageInner />
+    </Suspense>
+  );
+}
+
+function TransactionsPageInner() {
   const [AccountDialog, confirm] = useSelectAccount();
   const [variant, setVariant] = useState<VARIANTS>(VARIANTS.LIST);
   const [importResults, setImportResults] = useState(INITIAL_IMPORT_RESULTS);
@@ -77,7 +88,6 @@ const TransactionsPage = () => {
     });
   };
 
-  
   if (transactionsQuery.isLoading) {
     return (
       <div className="max-w-screen-2xl mx-auto w-full pb-10 -mt-24">
@@ -142,6 +152,4 @@ const TransactionsPage = () => {
       </Card>
     </div>
   );
-};
-
-export default TransactionsPage;
+}
