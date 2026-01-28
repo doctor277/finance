@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+````md
+This is a Next.js project bootstrapped with create-next-app and built using **Bun**.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Bun installed: https://bun.sh
+
+### Install dependencies
+```bash
+bun install
+````
+
+### Run the development server
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Development Notes
+
+* Uses Next.js App Router
+* API routes are handled with Hono
+* Database access via Drizzle ORM
+* Authentication with Clerk
+* Amounts are stored in milliunits and converted on the frontend
+
+## Database Seeding (Development Only)
+
+```bash
+bun run db:seed
+```
+
+This deletes existing data and inserts fresh seeded data. Do not run in production.
+
+## Fonts
+
+This project uses `next/font` to automatically optimize and load **Geist**, the Vercel font family.
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* Next.js Documentation: [https://nextjs.org/docs](https://nextjs.org/docs)
+* Bun Documentation: [https://bun.sh/docs](https://bun.sh/docs)
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deploy using the Vercel Platform.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Make sure to configure the required environment variables
+(from `.env.local`) in the Vercel dashboard before deploying.
+
