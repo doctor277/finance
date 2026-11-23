@@ -4,6 +4,7 @@ import { clerkMiddleware } from "@hono/clerk-auth";
 
 import accounts from "@/server/routes/accounts";
 import categories from "@/server/routes/categories";
+import reports from "@/server/routes/reports";
 import summary from "@/server/routes/summary";
 import transactions from "@/server/routes/transactions";
 
@@ -29,6 +30,7 @@ const routes = app
   .route("/summary", summary)
   .route("/accounts", accounts)
   .route("/categories", categories)
+  .route("/reports", reports)
   .route("/transactions", transactions);
 
 export { app };

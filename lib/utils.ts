@@ -8,12 +8,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function convertAmountFromMiliunits(amount: number) {
+/** Milliunits (integer) to dollars for display and charts: 12340 -> 12.34. */
+export function fromMilliunits(amount: number) {
   return amount / 1000;
 }
 
-export function convertAmountToMiliunits(amount: number) {
-  return Math.round(amount * 1000);
+/** Dollars to integer milliunits: 12.34 -> 12340. Never returns -0. */
+export function toMilliunits(amount: number) {
+  return Math.round(amount * 1000) || 0;
+}
+
+/**
+ * Exact decimal text for milliunits, for CSV exports: no floating point involved.
+ * Two decimals unless the value really has a third: -12340 -> "-12.34", 5 -> "0.005".
+ */
+export function milliunitsToDecimal(milliunits: number): string {
+  const sign = milliunits < 0 ? "-" : "";
+  const abs = Math.abs(milliunits);
+  const whole = Math.floor(abs / 1000);
+  const frac = String(abs % 1000).padStart(3, "0");
+  return `${sign}${whole}.${frac.endsWith("0") ? frac.slice(0, 2) : frac}`;
 }
 
 export function formatCurrency(value: number) {
@@ -24,11 +38,12 @@ export function formatCurrency(value: number) {
   }).format(value);
 }
 
-export function calculatePercentageChange(current: number, previous: number) {
-  if (previous === 0) {
-    return previous === current ? 0 : 100;
-  }
-
+/**
+ * Change from `previous` to `current` in percent, or null when there is no
+ * baseline (previous is 0): "+100%" from nothing would be misleading.
+ */
+export function calculatePercentageChange(current: number, previous: number): number | null {
+  if (previous === 0) return current === 0 ? 0 : null;
   return ((current - previous) / Math.abs(previous)) * 100;
 }
 

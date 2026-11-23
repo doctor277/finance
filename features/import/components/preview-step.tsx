@@ -6,7 +6,7 @@ import { ArrowLeft, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn, convertAmountFromMiliunits, formatCurrency } from "@/lib/utils";
+import { cn, fromMilliunits, formatCurrency } from "@/lib/utils";
 import { fromDateKey } from "@/lib/dates";
 import type { ParsedRow, RowStatus } from "@/lib/import";
 import { StatusBadge } from "./status-badge";
@@ -187,7 +187,7 @@ export const PreviewStep = ({
                     row.amount !== null && row.amount > 0 && "text-success",
                   )}
                 >
-                  {row.amount !== null ? formatCurrency(convertAmountFromMiliunits(row.amount)) : "–"}
+                  {row.amount !== null ? formatCurrency(fromMilliunits(row.amount)) : "–"}
                 </td>
                 <td className="p-2 text-xs">
                   {row.status === "duplicate" && <p>Already in this account</p>}

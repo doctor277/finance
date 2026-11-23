@@ -3,7 +3,7 @@ import { eachDayOfInterval, format, subDays } from "date-fns";
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
 import { categories, accounts, transactions } from "@/db/schema";
-import { convertAmountToMiliunits } from "@/lib/utils";
+import { toMilliunits } from "@/lib/utils";
 
 // ==============================
 // Database
@@ -66,7 +66,7 @@ const generateTransactionsForDay = (day: Date) => {
 
     const isExpense = Math.random() > 0.6; // 60% expense
     const amount = generateRandomAmount(category);
-    const formattedAmount = convertAmountToMiliunits(
+    const formattedAmount = toMilliunits(
       isExpense ? -amount : amount,
     );
 

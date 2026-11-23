@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
 import { client } from "@/lib/hono";
-import { convertAmountFromMiliunits } from "@/lib/utils";
+import { fromMilliunits } from "@/lib/utils";
 
 export const useGetSummary = () => {
   const params = useSearchParams();
@@ -27,17 +27,17 @@ export const useGetSummary = () => {
 
       return {
         ...data,
-        incomeAmount: convertAmountFromMiliunits(data.incomeAmount),
-        expensesAmount: convertAmountFromMiliunits(data.expensesAmount),
-        remainingAmount: convertAmountFromMiliunits(data.remainingAmount),
-        categories: data.categories.map((category: any) => ({
+        incomeAmount: fromMilliunits(data.incomeAmount),
+        expensesAmount: fromMilliunits(data.expensesAmount),
+        remainingAmount: fromMilliunits(data.remainingAmount),
+        categories: data.categories.map((category) => ({
           ...category,
-          value: convertAmountFromMiliunits(category.value),
+          value: fromMilliunits(category.value),
         })),
-        days: data.days.map((day: any) => ({
+        days: data.days.map((day) => ({
           ...day,
-          income: convertAmountFromMiliunits(day.income),
-          expenses: convertAmountFromMiliunits(day.expenses),
+          income: fromMilliunits(day.income),
+          expenses: fromMilliunits(day.expenses),
         })),
       };
     },

@@ -15,17 +15,18 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
-import { convertAmountToMiliunits } from "@/lib/utils";
+import { parseAmount } from "@/lib/import/amounts";
 import { toDateKey } from "@/lib/dates";
 import { type TransactionInput } from "@/lib/schemas";
 
 const formSchema = z.object({
-  accountId: z.string(),
-  date: z.coerce.date(),
+  accountId: z.string({ error: "Choose an account" }).min(1, "Choose an account"),
+  date: z.coerce.date({ error: "Pick a date" }),
   categoryId: z.string().nullable().optional(),
-  payee: z.string(),
-  amount: z.string(),
+  payee: z.string().trim().min(1, "Payee is required").max(200),
+  amount: z.string({ error: "Amount is required" }).min(1, "Amount is required"),
   notes: z.string().nullable().optional(),
 });
 
@@ -61,13 +62,17 @@ export const TransactionForm = ({
   });
 
   const handleSubmit = (values: FormValues) => {
-    const amount = parseFloat(values.amount);
-    const amountInMiliunits = convertAmountToMiliunits(amount);
+    // Same exact, string-based parser as the CSV import: no float rounding.
+    const amount = parseAmount(values.amount);
+    if (!amount.ok) {
+      form.setError("amount", { message: amount.error });
+      return;
+    }
 
     onSubmit({
       ...values,
       date: toDateKey(values.date as Date),
-      amount: amountInMiliunits,
+      amount: amount.milliunits,
       categoryId: values.categoryId || undefined,
     });
   };
@@ -87,6 +92,7 @@ export const TransactionForm = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Date</FormLabel>
               <FormControl>
                 <DatePicker
                   value={field.value as Date | undefined}
@@ -94,6 +100,7 @@ export const TransactionForm = ({
                   disabled={disabled}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -114,6 +121,7 @@ export const TransactionForm = ({
                   disabled={disabled}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -134,6 +142,7 @@ export const TransactionForm = ({
                   disabled={disabled}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -151,6 +160,7 @@ export const TransactionForm = ({
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -168,6 +178,7 @@ export const TransactionForm = ({
                   placeholder="0.00"
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -186,6 +197,7 @@ export const TransactionForm = ({
                   placeholder="Optional notes"
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

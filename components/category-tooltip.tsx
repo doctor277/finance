@@ -25,7 +25,7 @@ export const CategoryTooltip = ({ active, payload }: Props) => {
             <p className="text-sm text-muted-foreground">Expenses</p>
           </div>
           <p className="text-sm text-right font-medium">
-            {formatCurrency(value * -1)}
+            {formatCurrency(value)}
           </p>
         </div>
       </div>

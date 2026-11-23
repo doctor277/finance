@@ -10,7 +10,16 @@ import * as schema from "@/db/schema";
  * migration in ./drizzle applied. Clerk is replaced by a header: requests send
  * `x-test-user-id: <id>` to act as that user, or nothing to be signed out.
  */
-export async function createTestApp() {
+export function createTestApp() {
+  // Bun runs every test file in one process and caches modules, so the mocked
+  // app is built once and shared; each file resets the tables in beforeEach.
+  instance ??= build();
+  return instance;
+}
+
+let instance: ReturnType<typeof build> | undefined;
+
+async function build() {
   const client = new PGlite();
   const db = drizzle({ client, schema });
   await migrate(db, { migrationsFolder: "./drizzle" });

@@ -25,8 +25,8 @@ export const AmountInput = React.forwardRef<HTMLInputElement, Props>(
 
     const onReverseValue = () => {
       if (!value) return;
-      const newValue = parseFloat(value) * -1;
-      onChange(newValue.toString());
+      // Flip the sign on the text itself so "12.30" stays "-12.30" (not "-12.3").
+      onChange(value.startsWith("-") ? value.slice(1) : `-${value}`);
     };
 
     return (
@@ -37,6 +37,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, Props>(
               <button
                 type="button"
                 onClick={onReverseValue}
+                aria-label={isExpense ? "Expense: switch to income" : "Income: switch to expense"}
                 className={cn(
                   "absolute top-1.5 left-1.5 rounded-md p-2 flex items-center justify-center",
                   "bg-slate-400 hover:bg-slate-500 transition",
