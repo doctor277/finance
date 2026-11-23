@@ -6,7 +6,7 @@ import { analyzeCsv, summarize, validateRows } from "@/lib/import";
 const TODAY = new Date(2026, 10, 23);
 
 const run = (name: string) => {
-  const analysis = analyzeCsv(readFileSync(`samples/${name}`, "utf8"));
+  const analysis = analyzeCsv(readFileSync(`public/samples/${name}`, "utf8"));
   const rows = validateRows(analysis.file, {
     mapping: analysis.mapping,
     dateFormat: analysis.dateGuess.format!,
@@ -16,7 +16,7 @@ const run = (name: string) => {
   return { ...analysis, rows, summary: summarize(rows) };
 };
 
-describe("sample bank exports (samples/*.csv)", () => {
+describe("sample bank exports (public/samples/*.csv)", () => {
   test("01 clean ISO file: everything valid", () => {
     const r = run("01-clean-iso-dates.csv");
     expect(r.mapping).toEqual({ date: 0, payee: 1, amount: 2, notes: 3 });

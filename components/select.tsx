@@ -11,6 +11,8 @@ type Props = {
   value?: string | null | undefined;
   disabled?: boolean;
   placeholder?: string;
+  /** id of the inner input, so a <Label htmlFor> can name it. */
+  inputId?: string;
 };
 
 export const Select = ({
@@ -19,7 +21,8 @@ export const Select = ({
   disabled,
   onCreate,
   options = [],
-  placeholder
+  placeholder,
+  inputId,
 }: Props) => {
   const onSelect = (
     option: SingleValue<{ label: string, value: string }>
@@ -34,6 +37,7 @@ export const Select = ({
    return (
     <CreateableSelect 
       placeholder={placeholder}
+      inputId={inputId}
       className="text-sm h-10"
       styles={{
         control: (base) => ({
