@@ -218,7 +218,7 @@ export const ImportWizard = () => {
 
   return (
     <div className="space-y-6">
-      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" aria-label="Import progress">
+      <ol className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm sm:gap-x-2" aria-label="Import progress">
         {STEPS.map((s, i) => (
           <li key={s.key} className="flex items-center gap-2" aria-current={s.key === step ? "step" : undefined}>
             <span
@@ -232,7 +232,7 @@ export const ImportWizard = () => {
               {i + 1}
             </span>
             <span className={cn(i === currentIndex ? "font-medium" : "text-muted-foreground")}>{s.label}</span>
-            {i < STEPS.length - 1 && <span className="mx-1 h-px w-6 bg-border" aria-hidden />}
+            {i < STEPS.length - 1 && <span className="mx-1 hidden h-px w-6 bg-border sm:block" aria-hidden />}
           </li>
         ))}
       </ol>

@@ -2,84 +2,87 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { Loader2, Plus, Upload } from "lucide-react";
+import { FileUp, Plus } from "lucide-react";
 
 import { useNewTransaction } from "@/features/transactions/hooks/use-new-transaction";
 import { useGetTransactions } from "@/features/transactions/api/use-get-transactions";
 import { useBulkDeleteTransactions } from "@/features/transactions/api/use-bulk-delete-transactions";
 
-import { columns } from "./columns";
-
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/shell/page-header";
+import { EmptyState, ErrorState } from "@/components/states";
+import { Button } from "@/components/ui/button";
+
+import { columns } from "./columns";
 
 // Suspense boundary for useSearchParams() in the hooks below.
 export default function TransactionsPage() {
   return (
     <Suspense fallback={null}>
-      <TransactionsPageInner />
+      <Transactions />
     </Suspense>
   );
 }
 
-function TransactionsPageInner() {
+function Transactions() {
   const newTransaction = useNewTransaction();
   const deleteTransactions = useBulkDeleteTransactions();
-  const transactionsQuery = useGetTransactions();
-  const transactions = transactionsQuery.data || [];
-
-  const isDisabled = transactionsQuery.isLoading || deleteTransactions.isPending;
-
-  if (transactionsQuery.isLoading) {
-    return (
-      <div className="max-w-screen-2xl mx-auto w-full pb-10 -mt-24">
-        <Card className="border-none drop-shadow-sm">
-          <CardHeader>
-            <Skeleton className="h-8 w-48" />
-          </CardHeader>
-          <CardContent>
-            <div className="h-[500px] w-full flex items-center justify-center">
-              <Loader2 className="size-6 text-slate-300 animate-spin" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const query = useGetTransactions();
 
   return (
-    <div className="max-w-screen-2xl mx-auto w-full pb-10 -mt-24">
-      <Card className="border-none drop-shadow-sm">
-        <CardHeader className="flex flex-col gap-y-2 lg:flex-row lg:items-center lg:justify-between">
-          <CardTitle className="text-xl line-clamp-1">Transaction history</CardTitle>
-          <div className="flex flex-col lg:flex-row gap-y-2 items-center gap-x-2">
-            <Button onClick={newTransaction.onOpen} size="sm" className="w-full lg:w-auto">
-              <Plus className="size-4 mr-2" />
-              Add new
-            </Button>
-            <Button asChild size="sm" variant="outline" className="w-full lg:w-auto">
+    <>
+      <PageHeader
+        title="Transactions"
+        description="Everything in the selected period. Click a category or account to edit it."
+        filters
+        actions={
+          <>
+            <Button asChild size="sm" variant="outline" className="h-9">
               <Link href="/import">
-                <Upload className="size-4 mr-2" />
-                Import CSV
+                <FileUp className="size-4" aria-hidden /> Import CSV
               </Link>
             </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+            <Button size="sm" className="h-9" onClick={newTransaction.onOpen}>
+              <Plus className="size-4" aria-hidden /> Add transaction
+            </Button>
+          </>
+        }
+      />
+      <section className="rounded-lg border bg-card p-5">
+        {query.isError ? (
+          <ErrorState message="Your transactions couldn't be loaded." onRetry={() => query.refetch()} />
+        ) : (
           <DataTable
             filterKey="payee"
+            filterLabel="Search payees"
+            noun="transaction"
             columns={columns}
-            data={transactions}
-            onDelete={(row) => {
-              const ids = row.map((r) => r.original.id);
-              deleteTransactions.mutate({ ids });
-            }}
-            disabled={isDisabled}
+            data={query.data ?? []}
+            loading={query.isLoading}
+            onDelete={(rows) => deleteTransactions.mutate({ ids: rows.map((r) => r.original.id) })}
+            disabled={query.isLoading || deleteTransactions.isPending}
+            emptyState={
+              <EmptyState
+                icon={FileUp}
+                title="No transactions in this period"
+                description="Import a bank CSV, add one by hand, or widen the date range above."
+                action={
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button asChild>
+                      <Link href="/import">
+                        <FileUp className="size-4" aria-hidden /> Import a CSV
+                      </Link>
+                    </Button>
+                    <Button variant="outline" onClick={newTransaction.onOpen}>
+                      <Plus className="size-4" aria-hidden /> Add transaction
+                    </Button>
+                  </div>
+                }
+              />
+            }
           />
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </section>
+    </>
   );
 }

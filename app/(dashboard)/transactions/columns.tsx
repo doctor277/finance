@@ -1,43 +1,48 @@
 "use client";
 
-import { format } from "date-fns";
-import { fromDateKey } from "@/lib/dates";
 import { InferResponseType } from "hono";
 import { ArrowUpDown } from "lucide-react";
-import { ColumnDef } from "@tanstack/react-table";
+import { Column, ColumnDef } from "@tanstack/react-table";
 
 import { client } from "@/lib/hono";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn, formatCurrency } from "@/lib/utils";
+import { longDate } from "@/lib/format";
 import { Actions } from "./actions";
-import { formatCurrency } from "@/lib/utils";
-import { AccountColumn } from "./account-column";
-import { CategorytColumn } from "./cartegory-column";
+import { AccountCell, CategoryCell } from "./linked-cells";
 
-export type ResponseType = InferResponseType<
-  typeof client.api.transactions.$get,
-  200
->["data"][0];
+export type ResponseType = InferResponseType<typeof client.api.transactions.$get, 200>["data"][0];
+
+function SortHeader<T>({ column, label, align }: { column: Column<T>; label: string; align?: "right" }) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className={cn("-mx-2 h-8 text-xs font-medium text-muted-foreground", align === "right" && "ml-auto flex")}
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    >
+      {label}
+      <ArrowUpDown className="size-3.5" aria-hidden />
+    </Button>
+  );
+}
 
 export const columns: ColumnDef<ResponseType>[] = [
   {
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
+        aria-label="Select all on this page"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label={`Select ${row.original.payee} on ${longDate(row.original.date)}`}
       />
     ),
     enableSorting: false,
@@ -45,121 +50,43 @@ export const columns: ColumnDef<ResponseType>[] = [
   },
   {
     accessorKey: "date",
-    header: ({ column }) => (
-      <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Date
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    ),
-    cell: ({ row }) => {
-      const date = fromDateKey(row.original.date);
-      return <div className="text-center">{format(date, "dd MMMM, yyyy")}</div>;
-    },
-  },
-
-  {
-    accessorKey: "category",
-    header: ({ column }) => (
-      <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Category
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    ),
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-center">
-          <CategorytColumn
-            id={row.original.id}
-            category={row.original.category}
-            categoryId={row.original.categoryId}
-          />
-        </div>
-      );
-    },
+    header: ({ column }) => <SortHeader column={column} label="Date" />,
+    cell: ({ row }) => <span className="whitespace-nowrap tabular">{longDate(row.original.date)}</span>,
   },
   {
     accessorKey: "payee",
-    header: ({ column }) => (
-      <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Payee
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    ),
+    header: ({ column }) => <SortHeader column={column} label="Payee" />,
     cell: ({ row }) => (
-      <div className="flex justify-center">
-        {String(row.getValue("payee") ?? "-")}
-      </div>
+      <span className="block max-w-64 truncate" title={row.original.notes ?? undefined}>
+        {row.original.payee}
+      </span>
     ),
   },
-
   {
-    accessorKey: "amount",
-    header: ({ column }) => (
-      <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Amount
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+    accessorKey: "category",
+    header: ({ column }) => <SortHeader column={column} label="Category" />,
+    cell: ({ row }) => (
+      <CategoryCell id={row.original.id} category={row.original.category} categoryId={row.original.categoryId} />
     ),
-    cell: ({ row }) => {
-      const amount = parseFloat(String(row.getValue("amount") ?? "0"));
-
-      return (
-        <div className="flex justify-center">
-          <Badge
-            variant={amount < 0 ? "destructive" : "primary"}
-            className="text-xs font-medium px-3.5 py-2.5"
-          >
-            {formatCurrency(amount)}
-          </Badge>
-        </div>
-      );
-    },
   },
   {
     accessorKey: "account",
-    header: ({ column }) => (
-      <div className="flex justify-center">
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Account
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    ),
+    header: ({ column }) => <SortHeader column={column} label="Account" />,
+    cell: ({ row }) => <AccountCell account={row.original.account} accountId={row.original.accountId} />,
+  },
+  {
+    accessorKey: "amount",
+    header: ({ column }) => <SortHeader column={column} label="Amount" align="right" />,
     cell: ({ row }) => {
+      const amount = row.original.amount;
       return (
-        <div className="flex justify-center">
-          <AccountColumn
-            account={row.original.account}
-            accountId={row.original.accountId}
-          />
-        </div>
+        <span className={cn("block whitespace-nowrap text-right tabular", amount > 0 && "text-success")}>
+          {amount > 0 ? "+" : ""}
+          {formatCurrency(amount)}
+        </span>
       );
     },
   },
-
   {
     id: "actions",
     cell: ({ row }) => <Actions id={row.original.id} />,

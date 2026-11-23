@@ -117,3 +117,14 @@ export async function getTransactionsForExport(scope: Scope) {
     .where(where(scope))
     .orderBy(transactions.date, transactions.id);
 }
+
+/** Whether the user has any transaction at all, in any account or date. */
+export async function hasAnyTransactions(userId: string) {
+  const [row] = await db
+    .select({ id: transactions.id })
+    .from(transactions)
+    .innerJoin(accounts, eq(transactions.accountId, accounts.id))
+    .where(eq(accounts.userId, userId))
+    .limit(1);
+  return Boolean(row);
+}

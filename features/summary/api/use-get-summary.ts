@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
 import { client } from "@/lib/hono";
-import { fromMilliunits } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/api-error";
 
+/** Dashboard figures for the filters in the URL. Amounts stay in integer milliunits. */
 export const useGetSummary = () => {
   const params = useSearchParams();
   const from = params.get("from") || "";
@@ -15,31 +16,10 @@ export const useGetSummary = () => {
   return useQuery({
     queryKey: ["summary", { from, to, accountId }],
     queryFn: async () => {
-      const response = await client.api.summary.$get({
-        query: { from, to, accountId },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch summary");
-      }
-
+      const response = await client.api.summary.$get({ query: { from, to, accountId } });
+      if (!response.ok) throw new Error(await getErrorMessage(response, "Failed to load the overview"));
       const { data } = await response.json();
-
-      return {
-        ...data,
-        incomeAmount: fromMilliunits(data.incomeAmount),
-        expensesAmount: fromMilliunits(data.expensesAmount),
-        remainingAmount: fromMilliunits(data.remainingAmount),
-        categories: data.categories.map((category) => ({
-          ...category,
-          value: fromMilliunits(category.value),
-        })),
-        days: data.days.map((day) => ({
-          ...day,
-          income: fromMilliunits(day.income),
-          expenses: fromMilliunits(day.expenses),
-        })),
-      };
+      return data;
     },
   });
 };

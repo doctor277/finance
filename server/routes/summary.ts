@@ -6,7 +6,7 @@ import { calculatePercentageChange, fillMissingDays } from "@/lib/utils";
 import { withShares } from "@/lib/reports";
 import { requireAuth, type AuthEnv } from "@/server/lib/auth";
 import { previousPeriod, resolveDateRange } from "@/server/lib/date-range";
-import { getDailyTotals, getSpendingByCategory, getTotals } from "@/server/lib/report-queries";
+import { getDailyTotals, getSpendingByCategory, getTotals, hasAnyTransactions } from "@/server/lib/report-queries";
 
 /** Dashboard overview: totals vs the previous period, top categories, daily series. */
 const app = new Hono<AuthEnv>().use(requireAuth).get("/", zValidator("query", dateRangeQuerySchema), async (c) => {
@@ -15,16 +15,19 @@ const app = new Hono<AuthEnv>().use(requireAuth).get("/", zValidator("query", da
   const range = resolveDateRange(from, to);
   const scope = { userId, range, accountId: accountId || undefined };
 
-  const [current, previous, categories, days] = await Promise.all([
+  const [current, previous, categories, days, hasTransactions] = await Promise.all([
     getTotals(scope),
     getTotals({ ...scope, range: previousPeriod(range) }),
     getSpendingByCategory(scope),
     getDailyTotals(scope),
+    hasAnyTransactions(userId),
   ]);
 
   return c.json({
     data: {
       range,
+      /** False for a brand-new user: the dashboard shows "import your first CSV". */
+      hasTransactions,
       incomeAmount: current.income,
       // Spending as a positive number, so "spending went up" is a positive change.
       expensesAmount: current.expenses,

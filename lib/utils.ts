@@ -81,14 +81,14 @@ export function formatDateRange(period?: Period) {
   const defaultFrom = subDays(defaultTo, 30);
 
   if (!period?.from) {
-    return `${format(defaultFrom, "LLL dd")} - ${format(defaultTo, "LLL dd, y")}`;
+    return `${format(defaultFrom, "MMM d")} – ${format(defaultTo, "MMM d, y")}`;
   }
 
   if (period.to) {
-    return `${format(asDate(period.from), "LLL dd")} - ${format(asDate(period.to), "LLL dd, y")}`;
+    return `${format(asDate(period.from), "MMM d")} – ${format(asDate(period.to), "MMM d, y")}`;
   }
 
-  return format(asDate(period.from), "LLL dd, y");
+  return format(asDate(period.from), "MMM d, y");
 }
 
 export function formatPercentage(
