@@ -30,11 +30,11 @@ export const PieVariant = ({ data }: Props) => {
           verticalAlign="bottom"
           align="right"
           iconType="circle"
-          content={({ payload }: any) => {
+          content={({ payload = [] }) => {
             return (
               <ul className="flex flex-col space-y-2">
-                {payload.map((entry: any, index: number) => {
-                  const value = entry?.payload?.value ?? 0;
+                {payload.map((entry, index) => {
+                  const value = Number(entry.payload?.value ?? 0);
                   const percent = total ? value / total : 0; // 0..1
 
                   return (

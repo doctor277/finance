@@ -9,12 +9,11 @@ import { useGetTransactions } from "@/features/transactions/api/use-get-transact
 import { useBulkDeleteTransactions } from "@/features/transactions/api/use-bulk-delete-transactions";
 import { useBulkCreateTransactions } from "@/features/transactions/api/use-bulk-create-transactions";
 
-import { ImportCard } from "./import-card";
+import { ImportCard, type ImportedRow } from "./import-card";
 import { columns } from "./columns";
 import { UploadButton } from "./upload-button";
 
 import { useSelectAccount } from "@/features/accounts/hooks/use-select-account";
-import { transactions as transactionSchema } from "@/db/schema";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
@@ -28,10 +27,8 @@ const VARIANTS = {
 
 type VARIANTS = (typeof VARIANTS)[keyof typeof VARIANTS];
 
-const INITIAL_IMPORT_RESULTS = {
+const INITIAL_IMPORT_RESULTS: { data: string[][] } = {
   data: [],
-  errors: [],
-  meta: {},
 };
 
 // ✅ Wrapper provides the Suspense boundary for anything using useSearchParams() down the tree
@@ -67,9 +64,7 @@ function TransactionsPageInner() {
   const isDisabled =
     transactionsQuery.isLoading || deleteTransactions.isPending;
 
-  const onSubmitImport = async (
-    values: (typeof transactionSchema.$inferInsert)[],
-  ) => {
+  const onSubmitImport = async (values: ImportedRow[]) => {
     const accountId = await confirm();
 
     if (!accountId) {

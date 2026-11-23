@@ -1,5 +1,4 @@
 import { useOpenAccount } from "@/features/accounts/hooks/use-open-account";
-import { StringLiteralUnion } from "hono/utils/types";
 
 type Props = {
   account: string | null;

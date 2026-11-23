@@ -4,13 +4,19 @@ import { format, parse } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImportTable } from "./import-table";
-import { clearLine } from "readline";
 import { convertAmountToMiliunits } from "@/lib/utils";
 
 const dateFormat = "yyyy-MM-dd HH:mm:ss";
 const outputFormat = "yyyy-MM-dd";
 
 const requiredOptions = ["amount", "date", "payee"];
+
+export type ImportedRow = {
+  date: string;
+  payee: string;
+  amount: number;
+  notes?: string;
+};
 
 interface SelectedColumnsState {
   [key: string]: string | null;
@@ -19,7 +25,7 @@ interface SelectedColumnsState {
 type Props = {
   data: string[][];
   onCancel: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: ImportedRow[]) => void;
 };
 
 export const ImportCard = ({ data, onCancel, onSubmit }: Props) => {
@@ -79,17 +85,18 @@ export const ImportCard = ({ data, onCancel, onSubmit }: Props) => {
     };
 
     const arrayOfData = mappedData.body.map((row) => {
-      return row.reduce((acc: any, cell, index) => {
+      return row.reduce<Record<string, string>>((acc, cell, index) => {
         const header = mappedData.headears[index];
-        if (header !== null) {
+        if (header !== null && cell !== null) {
           acc[header] = cell;
         }
         return acc;
       }, {});
     });
 
-    const formattedData = arrayOfData.map((item) => ({
-      ...item,
+    const formattedData: ImportedRow[] = arrayOfData.map((item) => ({
+      payee: item.payee,
+      notes: item.notes,
       amount: convertAmountToMiliunits(parseFloat(item.amount)),
       date: format(parse(item.date, dateFormat, new Date()), outputFormat),
     }));

@@ -7,7 +7,6 @@ import categories from "./categories";
 import accounts from "./accounts";
 import transactions from "./transactions" ;
 
-import { HTTPException } from "hono/http-exception";
 
 export const runtime = "edge";
 
@@ -23,6 +22,7 @@ app.use(
   }),
 );
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used for the AppType export
 const routes = app
   .route("/summary", summary)
   .route("/accounts", accounts)

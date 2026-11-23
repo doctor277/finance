@@ -13,7 +13,6 @@ import {
   categories,
   accounts,
 } from "@/db/schema";
-import { validateHeaderValue } from "http";
 
 const app = new Hono()
   .get(
