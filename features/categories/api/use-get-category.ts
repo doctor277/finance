@@ -5,8 +5,9 @@ import { client } from "@/lib/hono";
 export const useGetCategory = (id?: string) => {
   const query = useQuery({
     enabled: !!id,
-    queryKey: ["categories", { id }],
+    queryKey: ["category", { id }],
     queryFn: async () => {
+      if (!id) throw new Error("Missing id");
       const response = await client.api.categories[":id"].$get({
         param: { id },
       });

@@ -1,30 +1,20 @@
-import { z } from "zod";
 import { Hono } from "hono";
 import { and, sql, sum, eq, gte, lte, lt, desc } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
-import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { parse, subDays, differenceInDays } from "date-fns";
 
 import { db } from "@/db/drizzle";
 import { accounts, categories, transactions } from "@/db/schema";
 import { calculatePercentageChange, fillMissingDays } from "@/lib/utils";
+import { dateRangeQuerySchema } from "@/lib/schemas";
+import { requireAuth, type AuthEnv } from "@/server/lib/auth";
 
-const app = new Hono().get(
+const app = new Hono<AuthEnv>().use(requireAuth).get(
   "/",
-  clerkMiddleware(),
-  zValidator(
-    "query",
-    z.object({
-      from: z.string().optional(),
-      to: z.string().optional(),
-      accountId: z.string().optional(),
-    }),
-  ),
+  zValidator("query", dateRangeQuerySchema),
   async (c) => {
-    const auth = getAuth(c);
+    const auth = { userId: c.get("userId") };
     const { from, to, accountId } = c.req.valid("query");
-
-    if (!auth?.userId) return c.json({ error: "Unauthorized" }, 401);
 
     const defaultTo = new Date();
     const defaultFrom = subDays(defaultTo, 30);

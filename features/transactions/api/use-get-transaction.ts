@@ -8,6 +8,7 @@ export const useGetTransaction = (id?: string) => {
     enabled: !!id,
     queryKey: ["transaction", { id }],
     queryFn: async () => {
+      if (!id) throw new Error("Missing id");
       const response = await client.api.transactions[":id"].$get({
         param: { id },
       });

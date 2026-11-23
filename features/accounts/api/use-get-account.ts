@@ -5,8 +5,9 @@ import { client } from "@/lib/hono";
 export const useGetAccount = (id?: string) => {
   const query = useQuery({
     enabled: !!id,
-    queryKey: ["accounts", { id }],
+    queryKey: ["account", { id }],
     queryFn: async () => {
+      if (!id) throw new Error("Missing id");
       const response = await client.api.accounts[":id"].$get({
         param: { id },
       });
