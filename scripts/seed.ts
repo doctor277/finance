@@ -1,120 +1,134 @@
+/**
+ * Demo data for one user: three accounts, ten categories and about four months
+ * of realistic transactions (payroll, rent, groceries, a few uncategorized).
+ *
+ *   SEED_USER_ID=user_xxx bun run db:seed
+ *
+ * Only that user's accounts and categories (and, through the foreign keys, their
+ * transactions) are deleted and recreated. Nobody else's data is touched.
+ * Random choices use a fixed seed, so two runs on the same day give the same data.
+ */
 import { config } from "dotenv";
-import { eachDayOfInterval, format, subDays } from "date-fns";
+import { createId } from "@paralleldrive/cuid2";
+import { eachDayOfInterval, endOfMonth, getDate, getDay, isSameDay, startOfMonth, subMonths } from "date-fns";
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
-import { categories, accounts, transactions } from "@/db/schema";
-import { toMilliunits } from "@/lib/utils";
+import { eq } from "drizzle-orm";
 
-// ==============================
-// Database
-config({ path: ".env.local" });
-// ==============================
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql);
+import { accounts, categories, transactions } from "@/db/schema";
+import { toDateKey } from "@/lib/dates";
 
-// ==============================
-// Seed data
-// ==============================
-const SEED_USER_ID = "user_36JG1oa07EZtCw3INzy37SWqFoD";
+config({ path: ".env.local", quiet: true });
 
-const SEED_CATEGORIES = [
-  { id: "category_1", name: "Food", userId: SEED_USER_ID, plaidId: null },
-  { id: "category_2", name: "Rent", userId: SEED_USER_ID, plaidId: null },
-  { id: "category_3", name: "Utilities", userId: SEED_USER_ID, plaidId: null },
-  { id: "category_7", name: "Clothing", userId: SEED_USER_ID, plaidId: null },
-];
+const userId = process.env.SEED_USER_ID;
+if (!userId || !/^user_[A-Za-z0-9]+$/.test(userId)) {
+  console.error("Set SEED_USER_ID to the Clerk user id to seed (looks like user_2abc...).");
+  process.exit(1);
+}
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is not set (copy .env.example to .env.local).");
+  process.exit(1);
+}
 
-const SEED_ACCOUNTS = [
-  { id: "account_1", name: "Checking", userId: SEED_USER_ID, plaidId: null },
-  { id: "account_2", name: "Savings", userId: SEED_USER_ID, plaidId: null },
-];
+const db = drizzle(neon(process.env.DATABASE_URL));
 
-const defaultTo = new Date();
-const defaultFrom = subDays(defaultTo, 90);
+// Deterministic PRNG (mulberry32) so the demo looks the same every run.
+let state = 20261123;
+const random = () => {
+  state = (state + 0x6d2b79f5) | 0;
+  let t = Math.imul(state ^ (state >>> 15), 1 | state);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+const pick = <T>(items: T[]) => items[Math.floor(random() * items.length)];
+const between = (min: number, max: number) => Math.round((min + random() * (max - min)) * 100) * 10; // milliunits, whole cents
 
-const SEED_TRANSACTIONS: (typeof transactions.$inferSelect)[] = [];
-
-// ==============================
-// Helpers (EXACT ORDER)
-// ==============================
-const generateRandomAmount = (category: typeof categories.$inferInsert) => {
-  switch (category.name) {
-    case "Rent":
-      return Math.random() * 400 + 90;
-    case "Utilities":
-      return Math.random() * 200 + 50;
-    case "Food":
-      return Math.random() * 30 + 10;
-    case "Transportation":
-    case "Health":
-      return Math.random() * 50 + 15;
-    case "Entertainment":
-    case "Clothing":
-    case "Miscellaneous":
-      return Math.random() * 100 + 20;
-    default:
-      return Math.random() * 50 + 10;
-  }
+const ACCOUNTS = {
+  chequing: { id: createId(), name: "Everyday Chequing" },
+  visa: { id: createId(), name: "Visa Card" },
+  savings: { id: createId(), name: "High-Interest Savings" },
 };
 
-const generateTransactionsForDay = (day: Date) => {
-  const numTransactions = Math.floor(Math.random() * 4) + 1; // 1 to 4
+const CATEGORY_NAMES = [
+  "Salary", "Rent", "Groceries", "Dining out", "Transport",
+  "Utilities", "Subscriptions", "Shopping", "Health", "Entertainment",
+] as const;
+type CategoryName = (typeof CATEGORY_NAMES)[number];
+const CATEGORIES = Object.fromEntries(CATEGORY_NAMES.map((name) => [name, createId()])) as Record<CategoryName, string>;
 
-  for (let i = 0; i < numTransactions; i++) {
-    const category =
-      SEED_CATEGORIES[Math.floor(Math.random() * SEED_CATEGORIES.length)];
-
-    const isExpense = Math.random() > 0.6; // 60% expense
-    const amount = generateRandomAmount(category);
-    const formattedAmount = toMilliunits(
-      isExpense ? -amount : amount,
-    );
-
-    SEED_TRANSACTIONS.push({
-      id: `transaction_${format(day, "yyyy-MM-dd")}_${i}`,
-      accountId: SEED_ACCOUNTS[0].id,
-      categoryId: category.id,
-      date: format(day, "yyyy-MM-dd"),
-      amount: formattedAmount,
-      payee: "Merchant",
-      notes: "Random transaction",
-    });
-  }
-};
-
-const generateTransactions = () => {
-  const days = eachDayOfInterval({
-    start: defaultFrom,
-    end: defaultTo,
+type Row = typeof transactions.$inferInsert;
+const rows: Row[] = [];
+const add = (date: Date, account: keyof typeof ACCOUNTS, payee: string, amount: number, category: CategoryName | null, notes: string | null = null) =>
+  rows.push({
+    id: createId(),
+    date: toDateKey(date),
+    accountId: ACCOUNTS[account].id,
+    categoryId: category ? CATEGORIES[category] : null,
+    payee,
+    amount,
+    notes,
   });
-  days.forEach((day) => generateTransactionsForDay(day));
-};
 
-// 👇 EXACTLY LIKE THE PICTURE
-generateTransactions();
+const today = new Date();
+const days = eachDayOfInterval({ start: startOfMonth(subMonths(today, 3)), end: today });
 
-// ==============================
-// Main
-// ==============================
-const main = async () => {
-  try {
-    // Reset database
-    await db.delete(transactions).execute();
-    await db.delete(accounts).execute();
-    await db.delete(categories).execute();
+for (const day of days) {
+  const dom = getDate(day);
+  const weekday = getDay(day); // 0 = Sunday
+  const lastDay = isSameDay(day, endOfMonth(day));
 
-    // Seed categories
-    await db.insert(categories).values(SEED_CATEGORIES).execute();
+  // Fixed monthly items. Payee spellings match public/samples/05 so importing it shows duplicates.
+  if (dom === 1) add(day, "chequing", "RENT - MAPLE PROPERTY MGMT", -1_850_000, "Rent", "Monthly rent");
+  if (dom === 15 || lastDay) add(day, "chequing", "PAYROLL - NORTHWIND LOGISTICS", 2_412_500, "Salary");
+  if (dom === 3) add(day, "visa", "Summit Fitness", -45_000, "Health", "Membership");
+  if (dom === 5) add(day, "chequing", "Rogers Internet", -75_000, "Utilities");
+  if (dom === 8) add(day, "visa", "NETFLIX.COM", -16_490, "Subscriptions");
+  if (dom === 11) add(day, "chequing", "HYDRO OTTAWA", -82_170, "Utilities", "Autopay");
+  if (dom === 16) add(day, "savings", "Transfer from chequing", 300_000, null, "Monthly savings");
+  if (dom === 20) add(day, "chequing", "Fido Mobile", -55_000, "Utilities");
+  if (dom === 22) add(day, "visa", "Spotify", -11_990, "Subscriptions");
+  if (lastDay) add(day, "savings", "Interest", between(0.9, 1.6), null);
 
-    // Seed accounts
-    await db.insert(accounts).values(SEED_ACCOUNTS).execute();
-
-    // Seed transactions
-    await db.insert(transactions).values(SEED_TRANSACTIONS).execute();
-  } catch (error) {
-    console.error("Error during seed:", error);
-    process.exit(1);
+  // Day-to-day spending.
+  if ((weekday === 2 || weekday === 6) && random() < 0.85) {
+    add(day, "visa", pick(["LOBLAWS 1052", "METRO #145", "FRESHCO DANFORTH", "Farm Boy"]), -between(38, 165), "Groceries");
   }
+  if (weekday >= 1 && weekday <= 5 && random() < 0.55) {
+    add(day, "visa", "TIM HORTONS #2231", -between(2.5, 8.5), "Dining out");
+  }
+  if (random() < 0.22) {
+    add(day, "visa", pick(["Pho Saigon", "The Wellington", "Pizza Pide", "Shawarma Palace"]), -between(18, 72), "Dining out");
+  }
+  if (weekday >= 1 && weekday <= 5 && random() < 0.35) {
+    add(day, "chequing", "PRESTO FARE", -3_350, "Transport");
+  }
+  if (random() < 0.07) add(day, "visa", "Uber Trip", -between(12, 38), "Transport");
+  if (random() < 0.14) {
+    add(day, "visa", pick(["AMAZON.CA, MARKETPLACE", "Canadian Tire", "Winners", "IKEA Ottawa"]), -between(15, 140), "Shopping");
+  }
+  if (random() < 0.05) add(day, "visa", "Shoppers Drug Mart", -between(8, 55), "Health");
+  if (random() < 0.05) add(day, "visa", pick(["Cineplex", "Ottawa Senators", "Steam"]), -between(14, 90), "Entertainment");
+  // A few left uncategorized, like a real account mid-cleanup.
+  if (random() < 0.03) add(day, "visa", pick(["SQ *MARKET STALL", "PAYPAL *EBAY", "E-TRANSFER SENT"]), -between(10, 60), null);
+}
+
+const main = async () => {
+  // Deleting the user's accounts cascades to their transactions.
+  await db.delete(accounts).where(eq(accounts.userId, userId));
+  await db.delete(categories).where(eq(categories.userId, userId));
+
+  await db.insert(accounts).values(Object.values(ACCOUNTS).map((a) => ({ ...a, userId, plaidId: null })));
+  await db.insert(categories).values(CATEGORY_NAMES.map((name) => ({ id: CATEGORIES[name], name, userId, plaidId: null })));
+  for (let i = 0; i < rows.length; i += 500) {
+    await db.insert(transactions).values(rows.slice(i, i + 500));
+  }
+
+  console.log(
+    `Seeded ${rows.length} transactions (${days[0].toDateString()} to ${today.toDateString()}) for ${userId}.`,
+  );
 };
 
-main();
+main().catch((error) => {
+  console.error("Seed failed:", error);
+  process.exit(1);
+});
