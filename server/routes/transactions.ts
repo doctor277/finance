@@ -8,6 +8,7 @@ import { accounts, categories, transactions } from "@/db/schema";
 import {
   bulkTransactionInputSchema,
   dateRangeQuerySchema,
+  duplicateCheckSchema,
   idParamSchema,
   idsSchema,
   transactionInputSchema,
@@ -15,6 +16,7 @@ import {
 import { requireAuth, type AuthEnv } from "@/server/lib/auth";
 import { ownsAllAccounts, ownsAllCategories } from "@/server/lib/ownership";
 import { resolveDateRange } from "@/server/lib/date-range";
+import { matchExisting } from "@/lib/import/duplicates";
 
 /** Ids of the given transactions that belong to `userId` (through their account). */
 async function ownedTransactionIds(userId: string, ids: string[]) {
@@ -117,6 +119,34 @@ const app = new Hono<AuthEnv>()
       .returning({ id: transactions.id });
 
     return c.json({ data }, 201);
+  })
+  // Used by the CSV import preview: which incoming rows already exist in the account?
+  .post("/duplicates", zValidator("json", duplicateCheckSchema), async (c) => {
+    const { accountId, rows } = c.req.valid("json");
+
+    if (!(await ownsAllAccounts(c.get("userId"), [accountId]))) {
+      return c.json({ error: "Account not found" }, 404);
+    }
+
+    const dates = rows.map((r) => r.date).sort();
+    const existing = await db
+      .select({
+        id: transactions.id,
+        date: transactions.date,
+        amount: transactions.amount,
+        payee: transactions.payee,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.accountId, accountId),
+          gte(transactions.date, dates[0]),
+          lte(transactions.date, dates[dates.length - 1]),
+        ),
+      )
+      .orderBy(transactions.date, transactions.id);
+
+    return c.json({ data: { duplicateOf: matchExisting(rows, existing) } });
   })
   .post("/bulk-delete", zValidator("json", idsSchema), async (c) => {
     const { ids } = c.req.valid("json");

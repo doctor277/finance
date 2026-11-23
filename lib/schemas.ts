@@ -44,4 +44,18 @@ export const dateRangeQuerySchema = z.object({
   accountId: z.string().optional(),
 });
 
+export const duplicateCheckSchema = z.object({
+  accountId: z.string().min(1),
+  rows: z
+    .array(
+      z.object({
+        date: z.string().refine(isDateKey, "Expected a yyyy-MM-dd date"),
+        amount: z.number().int().safe(),
+        payee: z.string().max(200),
+      }),
+    )
+    .min(1)
+    .max(5000),
+});
+
 export type TransactionInput = z.infer<typeof transactionInputSchema>;

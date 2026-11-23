@@ -188,6 +188,36 @@ describe("transactions: a user cannot read or delete another user's data", () =>
   });
 });
 
+describe("duplicate check for CSV import", () => {
+  test("flags rows already in the account, one-to-one", async () => {
+    const res = await t.request("POST", "/api/transactions/duplicates", {
+      as: BOB,
+      body: {
+        accountId: "acc_bob",
+        rows: [
+          { date: "2026-01-15", amount: -5_000, payee: "BOB GROCER" },
+          { date: "2026-01-15", amount: -5_000, payee: "bob grocer" },
+          { date: "2026-01-16", amount: -5_000, payee: "Bob grocer" },
+        ],
+      },
+    });
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as { data: { duplicateOf: unknown[] } }).data.duplicateOf).toEqual([
+      "tx_bob",
+      null,
+      null,
+    ]);
+  });
+
+  test("cannot be used to probe another user's account", async () => {
+    const res = await t.request("POST", "/api/transactions/duplicates", {
+      as: BOB,
+      body: { accountId: "acc_alice", rows: [{ date: "2026-01-15", amount: -12_340, payee: "Alice grocer" }] },
+    });
+    expect(res.status).toBe(404);
+  });
+});
+
 describe("accounts and categories are scoped to their owner", () => {
   test.each(["accounts", "categories"])("cannot rename another user's %s", async (resource) => {
     const id = resource === "accounts" ? "acc_alice" : "cat_alice";

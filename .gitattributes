@@ -1,0 +1,2 @@
+# Sample bank exports are test fixtures: keep their exact bytes (BOM, CRLF).
+samples/*.csv -text
