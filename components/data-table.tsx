@@ -29,6 +29,8 @@ interface DataTableProps<TData, TValue> {
   filterLabel: string;
   /** Singular noun for messages, e.g. "transaction". */
   noun: string;
+  /** Plural when it isn't noun + "s" (e.g. "categories"). */
+  nounPlural?: string;
   onDelete: (rows: Row<TData>[]) => void;
   disabled?: boolean;
   loading?: boolean;
@@ -42,6 +44,7 @@ export function DataTable<TData, TValue>({
   filterKey,
   filterLabel,
   noun,
+  nounPlural,
   onDelete,
   disabled,
   loading,
@@ -66,7 +69,7 @@ export function DataTable<TData, TValue>({
   });
 
   const selected = table.getFilteredSelectedRowModel().rows;
-  const plural = (n: number) => `${n} ${noun}${n === 1 ? "" : "s"}`;
+  const plural = (n: number) => `${n} ${n === 1 ? noun : (nounPlural ?? `${noun}s`)}`;
 
   const [ConfirmDialog, confirm] = useConfirm(
     `Delete ${plural(selected.length)}?`,
@@ -144,7 +147,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  No {noun}s match your search.
+                  No {nounPlural ?? `${noun}s`} match your search.
                 </TableCell>
               </TableRow>
             )}

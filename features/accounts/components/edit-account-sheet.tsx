@@ -25,8 +25,8 @@ export const EditAccountSheet = () => {
   const { isOpen, onClose, id } = useOpenAccount();
 
   const [ConfirmDialog, confirm] = useConfirm(
-    "Are you sure?",
-    "You are about to delete this account."
+    "Delete this account?",
+    "Its transactions are deleted with it. This can't be undone.",
   );
 
   const accountQuery = useGetAccount(id);

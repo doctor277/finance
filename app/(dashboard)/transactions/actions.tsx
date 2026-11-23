@@ -18,8 +18,8 @@ type Props = { id: string };
 
 export const Actions = ({ id }: Props) => {
   const [ConfirmDialog, confirm] = useConfirm(
-    "Are you sure?",
-    "You are about to delete this transaction ."
+    "Delete this transaction?",
+    "This can't be undone.",
   );
 
   const deleteMutation = useDeleteTransaction(id);

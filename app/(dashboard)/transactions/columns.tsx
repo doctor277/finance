@@ -1,11 +1,10 @@
 "use client";
 
 import { InferResponseType } from "hono";
-import { ArrowUpDown } from "lucide-react";
-import { Column, ColumnDef } from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 
 import { client } from "@/lib/hono";
-import { Button } from "@/components/ui/button";
+import { SortHeader } from "@/components/sort-header";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn, formatCurrency } from "@/lib/utils";
 import { longDate } from "@/lib/format";
@@ -13,20 +12,6 @@ import { Actions } from "./actions";
 import { AccountCell, CategoryCell } from "./linked-cells";
 
 export type ResponseType = InferResponseType<typeof client.api.transactions.$get, 200>["data"][0];
-
-function SortHeader<T>({ column, label, align }: { column: Column<T>; label: string; align?: "right" }) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className={cn("-mx-2 h-8 text-xs font-medium text-muted-foreground", align === "right" && "ml-auto flex")}
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      {label}
-      <ArrowUpDown className="size-3.5" aria-hidden />
-    </Button>
-  );
-}
 
 export const columns: ColumnDef<ResponseType>[] = [
   {

@@ -37,7 +37,7 @@ export const AmountInput = React.forwardRef<HTMLInputElement, Props>(
               <button
                 type="button"
                 onClick={onReverseValue}
-                aria-label={isExpense ? "Expense: switch to income" : "Income: switch to expense"}
+                aria-label={isExpense ? "Expense: switch to income" : isIncome ? "Income: switch to expense" : "Switch between income and expense"}
                 className={cn(
                   "absolute top-1.5 left-1.5 rounded-md p-2 flex items-center justify-center",
                   "bg-slate-400 hover:bg-slate-500 transition",

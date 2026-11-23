@@ -25,7 +25,7 @@ const formSchema = z.object({
   accountId: z.string({ error: "Choose an account" }).min(1, "Choose an account"),
   date: z.coerce.date({ error: "Pick a date" }),
   categoryId: z.string().nullable().optional(),
-  payee: z.string().trim().min(1, "Payee is required").max(200),
+  payee: z.string({ error: "Payee is required" }).trim().min(1, "Payee is required").max(200),
   amount: z.string({ error: "Amount is required" }).min(1, "Amount is required"),
   notes: z.string().nullable().optional(),
 });

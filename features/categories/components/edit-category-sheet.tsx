@@ -25,8 +25,8 @@ export const EditCategorySheet = () => {
   const { isOpen, onClose, id } = useOpenCategory();
 
   const [ConfirmDialog, confirm] = useConfirm(
-    "Are you sure?",
-    "You are about to delete this category."
+    "Delete this category?",
+    "Transactions in it become uncategorized. This can't be undone.",
   );
 
   const categoryQuery = useGetCategory(id);

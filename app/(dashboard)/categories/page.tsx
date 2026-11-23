@@ -37,6 +37,7 @@ export default function CategoriesPage() {
             filterKey="name"
             filterLabel="Search categories"
             noun="category"
+            nounPlural="categories"
             columns={columns}
             data={query.data ?? []}
             loading={query.isLoading}

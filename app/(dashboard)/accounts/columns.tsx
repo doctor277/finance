@@ -1,11 +1,10 @@
 "use client";
 
 import { InferResponseType } from "hono";
-import { ArrowUpDown } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { client } from "@/lib/hono";
-import { Button } from "@/components/ui/button";
+import { SortHeader } from "@/components/sort-header";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Actions } from "./actions";
 
@@ -31,7 +30,7 @@ export const columns: ColumnDef<ResponseType>[] = [
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
+        aria-label={`Select ${row.original.name}`}
       />
     ),
     enableSorting: false,
@@ -39,17 +38,7 @@ export const columns: ColumnDef<ResponseType>[] = [
   },
   {
     accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => <SortHeader column={column} label="Name" />,
   },
   {
     id: "actions",

@@ -163,7 +163,7 @@ export const MappingStep = (props: Props) => {
                       <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                         <span className="truncate" title={header}>{header}</span>
                         {auto && (
-                          <span className="rounded bg-primary/10 px-1 py-px text-[10px] font-semibold uppercase tracking-wide text-primary">
+                          <span className="rounded bg-primary/10 px-1.5 py-px text-[11px] font-medium text-primary">
                             auto
                           </span>
                         )}
