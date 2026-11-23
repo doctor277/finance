@@ -1,11 +1,12 @@
 import { format } from "date-fns";
+import { fromDateKey } from "@/lib/dates";
 
 import { formatCurrency } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
 type Props = {
   active?: boolean;
-  payload?: { value: number; payload: { date: string | Date } }[];
+  payload?: { value: number; payload: { date: string } }[];
 };
 
 export const CustomTooltip = ({ active, payload }: Props) => {
@@ -18,7 +19,7 @@ export const CustomTooltip = ({ active, payload }: Props) => {
   return (
     <div className="rounded-sm bg-white shadow-sm border overflow-hidden">
       <div className="text-sm p-2 px-3 bg-muted text-muted-foreground">
-        {format(date, "MMM dd, yyyy")}
+        {format(fromDateKey(date), "MMM dd, yyyy")}
       </div>
       <Separator />
       <div className="p-2 px-3 space-y-1">

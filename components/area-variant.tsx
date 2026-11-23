@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { fromDateKey } from "@/lib/dates";
 import {
   Tooltip,
   XAxis,
@@ -38,7 +39,7 @@ export const AreaVariant = ({ data }: Props) => {
           axisLine={false}
           tickLine={false}
           dataKey="date"
-          tickFormatter={(value) => format(value, "dd MMM")}
+          tickFormatter={(value: string) => format(fromDateKey(value), "dd MMM")}
           style={{ fontSize: "12px" }}
           tickMargin={16}
         />

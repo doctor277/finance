@@ -4,7 +4,7 @@ import { useNewAccount } from "@/features/accounts/hooks/use-new-account";
 import { AccountForm } from "@/features/accounts/components/account-form";
 import { useCreateAccount } from "@/features/accounts/api/use-create-account";
 
-import { insertAccountSchema } from "@/db/schema";
+import { nameSchema } from "@/lib/schemas";
 import {
   Sheet,
   SheetContent,
@@ -13,9 +13,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const formSchema = insertAccountSchema.pick({
-  name: true,
-});
+const formSchema = nameSchema;
 
 type FormValues = z.input<typeof formSchema>;
 

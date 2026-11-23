@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { parse, subDays } from "date-fns";
 import { zValidator } from "@hono/zod-validator";
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
@@ -15,6 +14,7 @@ import {
 } from "@/lib/schemas";
 import { requireAuth, type AuthEnv } from "@/server/lib/auth";
 import { ownsAllAccounts, ownsAllCategories } from "@/server/lib/ownership";
+import { resolveDateRange } from "@/server/lib/date-range";
 
 /** Ids of the given transactions that belong to `userId` (through their account). */
 async function ownedTransactionIds(userId: string, ids: string[]) {
@@ -32,11 +32,7 @@ const app = new Hono<AuthEnv>()
   .get("/", zValidator("query", dateRangeQuerySchema), async (c) => {
     const { from, to, accountId } = c.req.valid("query");
 
-    const defaultTo = new Date();
-    const defaultFrom = subDays(defaultTo, 30);
-
-    const startDate = from ? parse(from, "yyyy-MM-dd", new Date()) : defaultFrom;
-    const endDate = to ? parse(to, "yyyy-MM-dd", new Date()) : defaultTo;
+    const range = resolveDateRange(from, to);
 
     const data = await db
       .select({
@@ -57,11 +53,11 @@ const app = new Hono<AuthEnv>()
         and(
           accountId ? eq(transactions.accountId, accountId) : undefined,
           eq(accounts.userId, c.get("userId")),
-          gte(transactions.date, startDate),
-          lte(transactions.date, endDate),
+          gte(transactions.date, range.start),
+          lte(transactions.date, range.end),
         ),
       )
-      .orderBy(desc(transactions.date));
+      .orderBy(desc(transactions.date), desc(transactions.id));
 
     return c.json({ data });
   })

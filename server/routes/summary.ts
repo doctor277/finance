@@ -1,13 +1,13 @@
 import { Hono } from "hono";
 import { and, sql, sum, eq, gte, lte, lt, desc } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
-import { parse, subDays, differenceInDays } from "date-fns";
 
 import { db } from "@/db/drizzle";
 import { accounts, categories, transactions } from "@/db/schema";
 import { calculatePercentageChange, fillMissingDays } from "@/lib/utils";
 import { dateRangeQuerySchema } from "@/lib/schemas";
 import { requireAuth, type AuthEnv } from "@/server/lib/auth";
+import { previousPeriod, resolveDateRange } from "@/server/lib/date-range";
 
 const app = new Hono<AuthEnv>().use(requireAuth).get(
   "/",
@@ -16,22 +16,15 @@ const app = new Hono<AuthEnv>().use(requireAuth).get(
     const auth = { userId: c.get("userId") };
     const { from, to, accountId } = c.req.valid("query");
 
-    const defaultTo = new Date();
-    const defaultFrom = subDays(defaultTo, 30);
-
-    const startDate = from
-      ? parse(from, "yyyy-MM-dd", new Date())
-      : defaultFrom;
-    const endDate = to ? parse(to, "yyyy-MM-dd", new Date()) : defaultTo;
-
-    const periodLength = differenceInDays(endDate, startDate) + 1;
-    const lastPeriodStart = subDays(startDate, periodLength);
-    const lastPeriodEnd = subDays(endDate, periodLength);
+    const range = resolveDateRange(from, to);
+    const lastRange = previousPeriod(range);
+    const startDate = range.start;
+    const endDate = range.end;
 
     async function fetchFinancialData(
       userId: string,
-      startDate: Date,
-      endDate: Date,
+      startDate: string,
+      endDate: string,
     ) {
       return await db
         .select({
@@ -64,8 +57,8 @@ const app = new Hono<AuthEnv>().use(requireAuth).get(
     );
     const [lastPeriod] = await fetchFinancialData(
       auth.userId,
-      lastPeriodStart,
-      lastPeriodEnd,
+      lastRange.start,
+      lastRange.end,
     );
 
     const incomeChange = calculatePercentageChange(

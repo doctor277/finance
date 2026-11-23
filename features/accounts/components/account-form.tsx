@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { insertAccountSchema } from "@/db/schema";
+import { nameSchema } from "@/lib/schemas";
 import {
   Form,
   FormControl,
@@ -15,9 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const formSchema = insertAccountSchema.pick({
-  name: true,
-});
+const formSchema = nameSchema;
 
 type FormValues = z.input<typeof formSchema>;
 

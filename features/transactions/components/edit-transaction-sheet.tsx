@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { Loader2 } from "lucide-react";
 
 import { useGetTransaction } from "@/features/transactions/api/use-get-transaction";
@@ -14,7 +13,8 @@ import { useGetAccounts } from "@/features/accounts/api/use-get-accounts";
 import { useCreateAccount } from "@/features/accounts/api/use-create-account";
 
 import { useConfirm } from "@/hooks/use-confirm";
-import { insertTransactionSchema, transactions } from "@/db/schema";
+import { fromDateKey } from "@/lib/dates";
+import { type TransactionInput } from "@/lib/schemas";
 import {
   Sheet,
   SheetContent,
@@ -23,11 +23,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const formSchema = insertTransactionSchema.omit({
-  id: true,
-});
-
-type FormValues = z.input<typeof formSchema>;
+type FormValues = TransactionInput;
 
 export const EditTransactionSheet = () => {
   const { isOpen, onClose, id } = useOpenTransaction();
@@ -101,9 +97,7 @@ export const EditTransactionSheet = () => {
         accountId: transactionQuery.data.accountId,
         categoryId: transactionQuery.data.categoryId,
         amount: transactionQuery.data.amount.toString(),
-        date: transactionQuery.data.date
-          ? new Date(transactionQuery.data.date)
-          : new Date(),
+        date: fromDateKey(transactionQuery.data.date),
         payee: transactionQuery.data.payee,
         notes: transactionQuery.data.notes,
       }

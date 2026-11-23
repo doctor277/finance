@@ -8,7 +8,6 @@ import { DatePicker } from "@/components/date-picker";
 import { Select } from "@/components/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { insertTransactionSchema } from "@/db/schema";
 import { AmountInput } from "@/components/amount-input";
 import {
   Form,
@@ -18,6 +17,8 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { convertAmountToMiliunits } from "@/lib/utils";
+import { toDateKey } from "@/lib/dates";
+import { type TransactionInput } from "@/lib/schemas";
 
 const formSchema = z.object({
   accountId: z.string(),
@@ -28,12 +29,8 @@ const formSchema = z.object({
   notes: z.string().nullable().optional(),
 });
 
-const apiSchema = insertTransactionSchema.omit({
-  id: true,
-});
-
 type FormValues = z.input<typeof formSchema>;
-type ApiFormValues = z.input<typeof apiSchema>;
+type ApiFormValues = TransactionInput;
 
 type Props = {
   id?: string;
@@ -69,6 +66,7 @@ export const TransactionForm = ({
 
     onSubmit({
       ...values,
+      date: toDateKey(values.date as Date),
       amount: amountInMiliunits,
       categoryId: values.categoryId || undefined,
     });

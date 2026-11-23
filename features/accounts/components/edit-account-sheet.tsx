@@ -8,7 +8,7 @@ import { useEditAccount } from "@/features/accounts/api/use-edit-account";
 import { useDeleteAccount } from "@/features/accounts/api/use-delete-account";
 
 import { useConfirm } from "@/hooks/use-confirm";
-import { insertAccountSchema } from "@/db/schema";
+import { nameSchema } from "@/lib/schemas";
 import {
   Sheet,
   SheetContent,
@@ -17,9 +17,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const formSchema = insertAccountSchema.pick({
-  name: true,
-});
+const formSchema = nameSchema;
 
 type FormValues = z.input<typeof formSchema>;
 

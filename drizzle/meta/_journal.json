@@ -22,6 +22,13 @@
       "when": 1768863304008,
       "tag": "0002_pretty_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795456413238,
+      "tag": "0003_date_column_and_indexes",
+      "breakpoints": true
     }
   ]
 }

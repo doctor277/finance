@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { fromDateKey } from "@/lib/dates";
 import { format, subDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { ChevronDown } from "lucide-react";
@@ -31,8 +32,8 @@ export const DateFilter = () => {
   const defaultFrom = subDays(defaultTo, 30);
 
   const paramState = {
-    from: from ? new Date(from) : defaultFrom,
-    to: to ? new Date(to) : defaultTo,
+    from: from ? fromDateKey(from) : defaultFrom,
+    to: to ? fromDateKey(to) : defaultTo,
   };
 
   const [date, setDate] = useState<DateRange | undefined>(paramState);

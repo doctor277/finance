@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isDateKey } from "@/lib/dates";
+
 /** Request schemas shared by the API (server/) and the client forms. */
 
 export const idParamSchema = z.object({
@@ -15,7 +17,8 @@ export const nameSchema = z.object({
 });
 
 export const transactionInputSchema = z.object({
-  date: z.coerce.date(),
+  /** Calendar date, "yyyy-MM-dd". */
+  date: z.string().refine(isDateKey, "Date must be a real date in yyyy-MM-dd format"),
   accountId: z.string().min(1, "Account is required"),
   categoryId: z.string().min(1).nullable().optional(),
   payee: z.string().trim().min(1, "Payee is required").max(200),
@@ -29,9 +32,15 @@ export const bulkTransactionInputSchema = z
   .min(1)
   .max(5000);
 
+const optionalDateKey = z
+  .string()
+  .optional()
+  .refine((value) => !value || isDateKey(value), "Expected a yyyy-MM-dd date");
+
+/** Empty strings mean "not set" (the client sends them for cleared filters). */
 export const dateRangeQuerySchema = z.object({
-  from: z.string().optional(),
-  to: z.string().optional(),
+  from: optionalDateKey,
+  to: optionalDateKey,
   accountId: z.string().optional(),
 });
 

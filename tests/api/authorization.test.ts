@@ -30,7 +30,7 @@ beforeEach(async () => {
       categoryId: "cat_alice",
       payee: "Alice grocer",
       amount: -12_340,
-      date: new Date("2026-01-15"),
+      date: "2026-01-15",
     },
     {
       id: "tx_bob",
@@ -38,7 +38,7 @@ beforeEach(async () => {
       categoryId: "cat_bob",
       payee: "Bob grocer",
       amount: -5_000,
-      date: new Date("2026-01-15"),
+      date: "2026-01-15",
     },
   ]);
 });
@@ -231,6 +231,29 @@ describe("input validation", () => {
       body: newTx({ payee: "   " }),
     });
     expect(res.status).toBe(400);
+  });
+
+  test("rejects an impossible date", async () => {
+    const res = await t.request("POST", "/api/transactions", {
+      as: BOB,
+      body: newTx({ date: "2026-02-30" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("rejects a malformed date filter", async () => {
+    const res = await t.request("GET", "/api/transactions?from=01/02/2026", { as: BOB });
+    expect(res.status).toBe(400);
+  });
+
+  test("stores and returns the calendar date unchanged", async () => {
+    const created = await t.request("POST", "/api/transactions", {
+      as: BOB,
+      body: newTx({ date: "2026-03-08" }),
+    });
+    const { data } = (await created.json()) as { data: { id: string } };
+    const res = await t.request("GET", `/api/transactions/${data.id}`, { as: BOB });
+    expect(((await res.json()) as { data: { date: string } }).data.date).toBe("2026-03-08");
   });
 
   test("rejects an empty account name", async () => {

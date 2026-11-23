@@ -4,7 +4,7 @@ import { useNewCategory } from "@/features/categories/hooks/use-new-category";
 import { CategoryForm } from "@/features/categories/components/category-form";
 import { useCreateCategory } from "@/features/categories/api/use-create-category";
 
-import { insertCategorySchema } from "@/db/schema";
+import { nameSchema } from "@/lib/schemas";
 import {
   Sheet,
   SheetContent,
@@ -13,9 +13,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const formSchema = insertCategorySchema.pick({
-  name: true,
-});
+const formSchema = nameSchema;
 
 type FormValues = z.input<typeof formSchema>;
 

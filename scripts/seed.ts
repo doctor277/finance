@@ -74,7 +74,7 @@ const generateTransactionsForDay = (day: Date) => {
       id: `transaction_${format(day, "yyyy-MM-dd")}_${i}`,
       accountId: SEED_ACCOUNTS[0].id,
       categoryId: category.id,
-      date: day,
+      date: format(day, "yyyy-MM-dd"),
       amount: formattedAmount,
       payee: "Merchant",
       notes: "Random transaction",

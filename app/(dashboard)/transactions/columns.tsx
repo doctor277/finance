@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import { fromDateKey } from "@/lib/dates";
 import { InferResponseType } from "hono";
 import { ArrowUpDown } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -56,12 +57,7 @@ export const columns: ColumnDef<ResponseType>[] = [
       </div>
     ),
     cell: ({ row }) => {
-      const raw = row.getValue("date");
-      const date = raw ? new Date(String(raw)) : null;
-
-      if (!date || isNaN(date.getTime()))
-        return <div className="text-center">-</div>;
-
+      const date = fromDateKey(row.original.date);
       return <div className="text-center">{format(date, "dd MMMM, yyyy")}</div>;
     },
   },
