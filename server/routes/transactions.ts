@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
+import { validate } from "@/server/lib/validate";
 import { createId } from "@paralleldrive/cuid2";
 import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 
@@ -31,7 +31,7 @@ async function ownedTransactionIds(userId: string, ids: string[]) {
 
 const app = new Hono<AuthEnv>()
   .use(requireAuth)
-  .get("/", zValidator("query", dateRangeQuerySchema), async (c) => {
+  .get("/", validate("query", dateRangeQuerySchema), async (c) => {
     const { from, to, accountId } = c.req.valid("query");
 
     const range = resolveDateRange(from, to);
@@ -63,7 +63,7 @@ const app = new Hono<AuthEnv>()
 
     return c.json({ data });
   })
-  .get("/:id", zValidator("param", idParamSchema), async (c) => {
+  .get("/:id", validate("param", idParamSchema), async (c) => {
     const { id } = c.req.valid("param");
 
     const [data] = await db
@@ -84,7 +84,7 @@ const app = new Hono<AuthEnv>()
 
     return c.json({ data });
   })
-  .post("/", zValidator("json", transactionInputSchema), async (c) => {
+  .post("/", validate("json", transactionInputSchema), async (c) => {
     const userId = c.get("userId");
     const values = c.req.valid("json");
 
@@ -102,7 +102,7 @@ const app = new Hono<AuthEnv>()
 
     return c.json({ data }, 201);
   })
-  .post("/bulk-create", zValidator("json", bulkTransactionInputSchema), async (c) => {
+  .post("/bulk-create", validate("json", bulkTransactionInputSchema), async (c) => {
     const userId = c.get("userId");
     const values = c.req.valid("json");
 
@@ -121,7 +121,7 @@ const app = new Hono<AuthEnv>()
     return c.json({ data }, 201);
   })
   // Used by the CSV import preview: which incoming rows already exist in the account?
-  .post("/duplicates", zValidator("json", duplicateCheckSchema), async (c) => {
+  .post("/duplicates", validate("json", duplicateCheckSchema), async (c) => {
     const { accountId, rows } = c.req.valid("json");
 
     if (!(await ownsAllAccounts(c.get("userId"), [accountId]))) {
@@ -148,7 +148,7 @@ const app = new Hono<AuthEnv>()
 
     return c.json({ data: { duplicateOf: matchExisting(rows, existing) } });
   })
-  .post("/bulk-delete", zValidator("json", idsSchema), async (c) => {
+  .post("/bulk-delete", validate("json", idsSchema), async (c) => {
     const { ids } = c.req.valid("json");
 
     const owned = await ownedTransactionIds(c.get("userId"), ids);
@@ -163,8 +163,8 @@ const app = new Hono<AuthEnv>()
   })
   .patch(
     "/:id",
-    zValidator("param", idParamSchema),
-    zValidator("json", transactionInputSchema),
+    validate("param", idParamSchema),
+    validate("json", transactionInputSchema),
     async (c) => {
       const userId = c.get("userId");
       const { id } = c.req.valid("param");
@@ -191,7 +191,7 @@ const app = new Hono<AuthEnv>()
       return c.json({ data });
     },
   )
-  .delete("/:id", zValidator("param", idParamSchema), async (c) => {
+  .delete("/:id", validate("param", idParamSchema), async (c) => {
     const [owned] = await ownedTransactionIds(c.get("userId"), [c.req.valid("param").id]);
     if (!owned) return c.json({ error: "Not found" }, 404);
 

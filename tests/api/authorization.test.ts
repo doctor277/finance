@@ -286,6 +286,17 @@ describe("input validation", () => {
     expect(((await res.json()) as { data: { date: string } }).data.date).toBe("2026-03-08");
   });
 
+  test("validation errors use the same { error } shape as other API errors", async () => {
+    const res = await t.request("POST", "/api/transactions", {
+      as: BOB,
+      body: newTx({ payee: "   " }),
+    });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string; issues: { path: string; message: string }[] };
+    expect(body.error).toBe("payee: Payee is required");
+    expect(body.issues[0]).toEqual({ path: "payee", message: "Payee is required" });
+  });
+
   test("rejects an empty account name", async () => {
     const res = await t.request("POST", "/api/accounts", { as: BOB, body: { name: "" } });
     expect(res.status).toBe(400);

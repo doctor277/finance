@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
+import { validate } from "@/server/lib/validate";
 
 import { dateRangeQuerySchema } from "@/lib/schemas";
 import { buildTransactionsCsv, fillMonths, withShares } from "@/lib/reports";
@@ -16,7 +16,7 @@ import {
 
 const app = new Hono<AuthEnv>()
   .use(requireAuth)
-  .get("/", zValidator("query", dateRangeQuerySchema), async (c) => {
+  .get("/", validate("query", dateRangeQuerySchema), async (c) => {
     const { from, to, accountId } = c.req.valid("query");
     const range = resolveDateRange(from, to);
     const scope = { userId: c.get("userId"), range, accountId: accountId || undefined };
@@ -38,7 +38,7 @@ const app = new Hono<AuthEnv>()
       },
     });
   })
-  .get("/export", zValidator("query", dateRangeQuerySchema), async (c) => {
+  .get("/export", validate("query", dateRangeQuerySchema), async (c) => {
     const { from, to, accountId } = c.req.valid("query");
     const userId = c.get("userId");
     if (accountId && !(await ownsAllAccounts(userId, [accountId]))) {

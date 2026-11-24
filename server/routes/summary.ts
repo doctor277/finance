@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
+import { validate } from "@/server/lib/validate";
 
 import { dateRangeQuerySchema } from "@/lib/schemas";
 import { calculatePercentageChange, fillMissingDays } from "@/lib/utils";
@@ -9,7 +9,7 @@ import { previousPeriod, resolveDateRange } from "@/server/lib/date-range";
 import { getDailyTotals, getSpendingByCategory, getTotals, hasAnyTransactions } from "@/server/lib/report-queries";
 
 /** Dashboard overview: totals vs the previous period, top categories, daily series. */
-const app = new Hono<AuthEnv>().use(requireAuth).get("/", zValidator("query", dateRangeQuerySchema), async (c) => {
+const app = new Hono<AuthEnv>().use(requireAuth).get("/", validate("query", dateRangeQuerySchema), async (c) => {
   const { from, to, accountId } = c.req.valid("query");
   const userId = c.get("userId");
   const range = resolveDateRange(from, to);

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
+import { validate } from "@/server/lib/validate";
 import { createId } from "@paralleldrive/cuid2";
 import { and, asc, eq, inArray } from "drizzle-orm";
 
@@ -19,7 +19,7 @@ const app = new Hono<AuthEnv>()
 
     return c.json({ data });
   })
-  .get("/:id", zValidator("param", idParamSchema), async (c) => {
+  .get("/:id", validate("param", idParamSchema), async (c) => {
     const { id } = c.req.valid("param");
 
     const [data] = await db
@@ -31,7 +31,7 @@ const app = new Hono<AuthEnv>()
 
     return c.json({ data });
   })
-  .post("/", zValidator("json", nameSchema), async (c) => {
+  .post("/", validate("json", nameSchema), async (c) => {
     const { name } = c.req.valid("json");
 
     const [data] = await db
@@ -41,7 +41,7 @@ const app = new Hono<AuthEnv>()
 
     return c.json({ data }, 201);
   })
-  .post("/bulk-delete", zValidator("json", idsSchema), async (c) => {
+  .post("/bulk-delete", validate("json", idsSchema), async (c) => {
     const { ids } = c.req.valid("json");
 
     const data = await db
@@ -53,8 +53,8 @@ const app = new Hono<AuthEnv>()
   })
   .patch(
     "/:id",
-    zValidator("param", idParamSchema),
-    zValidator("json", nameSchema),
+    validate("param", idParamSchema),
+    validate("json", nameSchema),
     async (c) => {
       const { id } = c.req.valid("param");
       const { name } = c.req.valid("json");
@@ -70,7 +70,7 @@ const app = new Hono<AuthEnv>()
       return c.json({ data });
     },
   )
-  .delete("/:id", zValidator("param", idParamSchema), async (c) => {
+  .delete("/:id", validate("param", idParamSchema), async (c) => {
     const { id } = c.req.valid("param");
 
     const [data] = await db
