@@ -88,3 +88,10 @@ describe("fillMissingDays", () => {
     expect(fillMissingDays([], "2026-01-01", "2026-01-03")).toEqual([]);
   });
 });
+
+describe("client default range", () => {
+  test("is the 30 days ending on the browser's local today", async () => {
+    const { defaultRangeKeys } = await import("@/lib/dates");
+    expect(defaultRangeKeys(new Date(2026, 10, 23, 23, 30))).toEqual({ from: "2026-10-24", to: "2026-11-23" });
+  });
+});

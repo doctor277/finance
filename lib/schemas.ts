@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 import { isDateKey } from "@/lib/dates";
+import { MAX_MILLIUNITS } from "@/lib/import/amounts";
+
+/** Integer milliunits within the int4 column, symmetric so negating in SQL never overflows. */
+const milliunits = z.number().int().min(-MAX_MILLIUNITS).max(MAX_MILLIUNITS);
 
 /** Request schemas shared by the API (server/) and the client forms. */
 
@@ -23,7 +27,7 @@ export const transactionInputSchema = z.object({
   categoryId: z.string().min(1).nullable().optional(),
   payee: z.string().trim().min(1, "Payee is required").max(200),
   /** Integer milliunits: $12.34 is stored as 12340. */
-  amount: z.number().int().safe(),
+  amount: milliunits,
   notes: z.string().max(1000).nullable().optional(),
 });
 
@@ -50,7 +54,7 @@ export const duplicateCheckSchema = z.object({
     .array(
       z.object({
         date: z.string().refine(isDateKey, "Expected a yyyy-MM-dd date"),
-        amount: z.number().int().safe(),
+        amount: milliunits,
         payee: z.string().max(200),
       }),
     )

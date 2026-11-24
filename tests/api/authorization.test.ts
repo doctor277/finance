@@ -263,6 +263,11 @@ describe("input validation", () => {
     expect(res.status).toBe(400);
   });
 
+  test.each([2_147_483_648, -2_147_483_648])("rejects amount %d outside the database range", async (amount) => {
+    const res = await t.request("POST", "/api/transactions", { as: BOB, body: newTx({ amount }) });
+    expect(res.status).toBe(400);
+  });
+
   test("rejects an impossible date", async () => {
     const res = await t.request("POST", "/api/transactions", {
       as: BOB,

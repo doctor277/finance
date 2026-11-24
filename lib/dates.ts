@@ -1,4 +1,4 @@
-import { format, isValid, parse } from "date-fns";
+import { format, isValid, parse, subDays } from "date-fns";
 
 /**
  * Transactions carry calendar dates, not instants. They travel through the app as
@@ -26,4 +26,13 @@ export function toDateKey(date: Date): string {
 /** "yyyy-MM-dd" to a Date at local midnight (for display and pickers). */
 export function fromDateKey(key: string): Date {
   return parse(key, DATE_KEY_FORMAT, new Date(2000, 0, 1));
+}
+
+/**
+ * Default filter range: the 30 days ending on the user's *local* today. The
+ * client always sends it explicitly, so the server's clock (UTC on the edge)
+ * never decides which day "today" is.
+ */
+export function defaultRangeKeys(today: Date = new Date()) {
+  return { from: toDateKey(subDays(today, 30)), to: toDateKey(today) };
 }

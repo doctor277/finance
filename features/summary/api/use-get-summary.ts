@@ -4,13 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
 import { client } from "@/lib/hono";
+import { defaultRangeKeys } from "@/lib/dates";
 import { getErrorMessage } from "@/lib/api-error";
 
 /** Dashboard figures for the filters in the URL. Amounts stay in integer milliunits. */
 export const useGetSummary = () => {
   const params = useSearchParams();
-  const from = params.get("from") || "";
-  const to = params.get("to") || "";
+  const fallback = defaultRangeKeys();
+  const from = params.get("from") || fallback.from;
+  const to = params.get("to") || fallback.to;
   const accountId = params.get("accountId") || "";
 
   return useQuery({
