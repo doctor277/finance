@@ -31,12 +31,12 @@ All of these were tested by hand in the browser against the seeded demo data, as
 
 The import logic lives in [`lib/import`](lib/import) as plain TypeScript functions with no React and no database, so every rule is unit-tested.
 
-1. **Read the file** ([`csv.ts`](lib/import/csv.ts)). Strip a UTF-8 byte-order mark, detect the delimiter (comma, semicolon, tab or pipe), drop blank lines and count them. Skip statement preambles like `Statement for account ****4821` by finding the first row that reads like a header. If the first row is already data (it holds a date and an amount), treat the file as headerless. Keep each row's original line number for error messages.
+1. **Read the file** ([`csv.ts`](lib/import/csv.ts)). Strip a UTF-8 byte-order mark, detect the delimiter (comma, semicolon, tab or pipe), drop blank lines and count them. Skip statement preambles like `Statement for account ****4821` by finding the first row that reads like a header. If the first row is already data (it holds a date and an amount), treat the file as headerless. Keep each row's original line number for error messages. A header is only looked for above the first row that looks like data, so no data row can be mistaken for a header and silently drop the rows above it.
 2. **Map columns** ([`columns.ts`](lib/import/columns.ts)). Match headers against 70 aliases, and never map "Balance" or "Account Number" as the amount. Without a header, infer columns from their contents: a column that is 80%+ dates is the date; two neighbouring number columns where each row fills exactly one of them are debit and credit.
 3. **Detect formats** ([`dates.ts`](lib/import/dates.ts), [`amounts.ts`](lib/import/amounts.ts)). Pick the date format that parses the most sample rows. If no day is above 12, `03/04/2026` could be March 4 or April 3, so the UI warns and asks you to confirm. Detect a decimal comma (`1.234,56`) from the samples.
 4. **Validate and cleanse each row** ([`validate.ts`](lib/import/validate.ts)):
-   - Dates: "does not match the date format" is reported separately from "is not a real calendar date" (`2026-02-30`). Future dates are a warning.
-   - Amounts are parsed **as text, never as floating point**, into integer milliunits ($12.34 → 12340). Rejections say why: `"N/A" is not a valid amount`, `looks like it uses a decimal comma`, or too large for the database column.
+   - Dates: "does not match the date format" is reported separately from "is not a real calendar date" (`2026-02-30`). Future dates are a warning. Two-digit years up to next year are 20xx, and later ones are 19xx (`99` → 1999).
+   - Amounts are parsed **as text, never as floating point**, into integer milliunits ($12.34 → 12340). Rejections say why: `"N/A" is not a valid amount`, `looks like it uses a decimal comma`, or too large for the database column. An amount with exactly three decimals (`1.200`) is flagged in case the decimal separator is wrong.
    - Payee and notes are trimmed, inner whitespace is collapsed and the length is capped. An empty payee is an error.
    - A row with any error is rejected; a row with only warnings can still be imported.
 5. **Find duplicates** ([`duplicates.ts`](lib/import/duplicates.ts)). The server returns the account's existing transactions in the file's date range. Rows match on date + amount + normalized payee (case, accents, punctuation and spacing ignored), **one-to-one**: if you already have one $4.75 coffee that day and the file has two, only one is a duplicate. Identical rows within the same file are flagged as a warning but kept, since they can be two real purchases.
@@ -107,14 +107,14 @@ This deletes and recreates **only that user's** accounts, categories and transac
 ```bash
 bun run typecheck
 bun run lint
-bun run test       # 214 tests
+bun run test       # 238 tests
 bun run build
 ```
 
-The 214 tests break down as:
-- **122 import tests:** parsing, column detection, dates, amounts, cleansing, duplicates, the skipped-rows report, and the sample files end to end. They include property-based tests: any amount printed in six bank styles parses back exactly, and duplicate matching never reuses a transaction.
-- **45 API tests:** they run the real Hono app against an in-process Postgres (PGlite) with every migration applied. They cover that a user can't read or write another user's accounts, categories or transactions, and check the report numbers to the cent against hand-computed fixtures.
-- **47 unit tests:** dates, milliunit conversions and report helpers.
+The 238 tests break down as:
+- **143 import tests:** parsing, column detection, dates, amounts, cleansing, duplicates, the skipped-rows report, and the sample files end to end. They include property-based tests: any amount printed in six bank styles parses back exactly, and duplicate matching never reuses a transaction.
+- **47 API tests:** they run the real Hono app against an in-process Postgres (PGlite) with every migration applied. They cover that a user can't read or write another user's accounts, categories or transactions, and check the report numbers to the cent against hand-computed fixtures.
+- **48 unit tests:** dates, milliunit conversions and report helpers.
 
 Tests run in the America/Toronto time zone, so an off-by-one-day UTC bug fails them.
 
