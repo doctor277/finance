@@ -1,155 +1,88 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { Loader2, Plus } from "lucide-react";
-import { toast } from "sonner";
+import { Suspense } from "react";
+import Link from "next/link";
+import { FileUp, Plus } from "lucide-react";
 
 import { useNewTransaction } from "@/features/transactions/hooks/use-new-transaction";
 import { useGetTransactions } from "@/features/transactions/api/use-get-transactions";
 import { useBulkDeleteTransactions } from "@/features/transactions/api/use-bulk-delete-transactions";
-import { useBulkCreateTransactions } from "@/features/transactions/api/use-bulk-create-transactions";
 
-import { ImportCard } from "./import-card";
-import { columns } from "./columns";
-import { UploadButton } from "./upload-button";
-
-import { useSelectAccount } from "@/features/accounts/hooks/use-select-account";
-import { transactions as transactionSchema } from "@/db/schema";
-
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/shell/page-header";
+import { EmptyState, ErrorState } from "@/components/states";
+import { Button } from "@/components/ui/button";
 
-const VARIANTS = {
-  LIST: "LIST",
-  IMPORT: "IMPORT",
-} as const;
+import { columns } from "./columns";
 
-type VARIANTS = (typeof VARIANTS)[keyof typeof VARIANTS];
-
-const INITIAL_IMPORT_RESULTS = {
-  data: [],
-  errors: [],
-  meta: {},
-};
-
-// ✅ Wrapper provides the Suspense boundary for anything using useSearchParams() down the tree
+// Suspense boundary for useSearchParams() in the hooks below.
 export default function TransactionsPage() {
   return (
     <Suspense fallback={null}>
-      <TransactionsPageInner />
+      <Transactions />
     </Suspense>
   );
 }
 
-function TransactionsPageInner() {
-  const [AccountDialog, confirm] = useSelectAccount();
-  const [variant, setVariant] = useState<VARIANTS>(VARIANTS.LIST);
-  const [importResults, setImportResults] = useState(INITIAL_IMPORT_RESULTS);
-
-  const onUpload = (results: typeof INITIAL_IMPORT_RESULTS) => {
-    setImportResults(results);
-    setVariant(VARIANTS.IMPORT);
-  };
-
-  const onCancelImport = () => {
-    setImportResults(INITIAL_IMPORT_RESULTS);
-    setVariant(VARIANTS.LIST);
-  };
-
+function Transactions() {
   const newTransaction = useNewTransaction();
-  const createTransactions = useBulkCreateTransactions();
   const deleteTransactions = useBulkDeleteTransactions();
-  const transactionsQuery = useGetTransactions();
-  const transactions = transactionsQuery.data || [];
-
-  const isDisabled =
-    transactionsQuery.isLoading || deleteTransactions.isPending;
-
-  const onSubmitImport = async (
-    values: (typeof transactionSchema.$inferInsert)[],
-  ) => {
-    const accountId = await confirm();
-
-    if (!accountId) {
-      return toast.error("Please select an account to continue");
-    }
-
-    const data = values.map((value) => ({
-      ...value,
-      accountId: accountId as string,
-    }));
-
-    createTransactions.mutate(data, {
-      onSuccess: () => {
-        onCancelImport();
-      },
-    });
-  };
-
-  if (transactionsQuery.isLoading) {
-    return (
-      <div className="max-w-screen-2xl mx-auto w-full pb-10 -mt-24">
-        <Card className="brder-none drop-shadow-sm">
-          <CardHeader>
-            <Skeleton className="h-8 w-48" />
-          </CardHeader>
-          <CardContent>
-            <div className="h-[500px] w-full flex items-center justify-center">
-              <Loader2 className="size-6 text-slate-300 animate-spin" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (variant === VARIANTS.IMPORT) {
-    return (
-      <>
-        <AccountDialog />
-        <ImportCard
-          data={importResults.data}
-          onCancel={onCancelImport}
-          onSubmit={onSubmitImport}
-        />
-      </>
-    );
-  }
+  const query = useGetTransactions();
 
   return (
-    <div className="max-w-screen-2xl mx-auto w-full pb-10 -mt-24">
-      <Card className="brder-none drop-shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between gap-y-2">
-          <CardTitle className="text-xl line-clamp-1">
-            Transactions histroy
-          </CardTitle>
-          <div className="flex flex-col lg:flex-row gap-y-2 items-center gap-x-2">
-            <Button
-              onClick={newTransaction.onOpen}
-              size="sm"
-              className="w-full lg:w-auto"
-            >
-              <Plus className="size-4 mr-2" />
-              Add new
+    <>
+      <PageHeader
+        title="Transactions"
+        description="Everything in the selected period. Click a category or account to edit it."
+        filters
+        actions={
+          <>
+            <Button asChild size="sm" variant="outline" className="h-9">
+              <Link href="/import">
+                <FileUp className="size-4" aria-hidden /> Import CSV
+              </Link>
             </Button>
-            <UploadButton onUpload={onUpload} />
-          </div>
-        </CardHeader>
-        <CardContent>
+            <Button size="sm" className="h-9" onClick={newTransaction.onOpen}>
+              <Plus className="size-4" aria-hidden /> Add transaction
+            </Button>
+          </>
+        }
+      />
+      <section className="rounded-lg border bg-card p-5">
+        {query.isError ? (
+          <ErrorState message="Your transactions couldn't be loaded." onRetry={() => query.refetch()} />
+        ) : (
           <DataTable
             filterKey="payee"
+            filterLabel="Search payees"
+            noun="transaction"
             columns={columns}
-            data={transactions}
-            onDelete={(row) => {
-              const ids = row.map((r) => r.original.id);
-              deleteTransactions.mutate({ ids });
-            }}
-            disabled={isDisabled}
+            data={query.data ?? []}
+            loading={query.isLoading}
+            onDelete={(rows) => deleteTransactions.mutate({ ids: rows.map((r) => r.original.id) })}
+            disabled={query.isLoading || deleteTransactions.isPending}
+            emptyState={
+              <EmptyState
+                icon={FileUp}
+                title="No transactions in this period"
+                description="Import a bank CSV, add one by hand, or widen the date range above."
+                action={
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button asChild>
+                      <Link href="/import">
+                        <FileUp className="size-4" aria-hidden /> Import a CSV
+                      </Link>
+                    </Button>
+                    <Button variant="outline" onClick={newTransaction.onOpen}>
+                      <Plus className="size-4" aria-hidden /> Add transaction
+                    </Button>
+                  </div>
+                }
+              />
+            }
           />
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </section>
+    </>
   );
 }

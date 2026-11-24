@@ -1,4 +1,3 @@
-import { z } from "zod";
 
 import { TransactionForm } from "@/features/transactions/components/transaction-form";
 import { useNewTransaction } from "@/features/transactions/hooks/use-new-transaction";
@@ -10,7 +9,7 @@ import { useGetCategories } from "@/features/categories/api/use-get-categories";
 import { useGetAccounts } from "@/features/accounts/api/use-get-accounts";
 import { useCreateAccount } from "@/features/accounts/api/use-create-account";
 
-import { insertTransactionSchema } from "@/db/schema";
+import { type TransactionInput } from "@/lib/schemas";
 import {
   Sheet,
   SheetContent,
@@ -20,11 +19,7 @@ import {
 } from "@/components/ui/sheet";
 import { Loader2 } from "lucide-react";
 
-const formSchema = insertTransactionSchema.omit({
-  id: true,
-});
-
-type FormValues = z.input<typeof formSchema>;
+type FormValues = TransactionInput;
 
 export const NewTransactionSheet = () => {
   const { isOpen, onClose } = useNewTransaction();
@@ -74,8 +69,8 @@ export const NewTransactionSheet = () => {
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="p-4">
         <SheetHeader className="space-y-1 pb-2">
-          <SheetTitle>New Transaction</SheetTitle>
-          <SheetDescription>Add a new transaction</SheetDescription>
+          <SheetTitle>New transaction</SheetTitle>
+          <SheetDescription>Record a purchase, payment or deposit by hand.</SheetDescription>
         </SheetHeader>
         {isLoading ? (
           <div className="absolute inset-0 flex items-center justify-center">

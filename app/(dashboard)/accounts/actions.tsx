@@ -18,8 +18,8 @@ type Props = { id: string };
 
 export const Actions = ({ id }: Props) => {
   const [ConfirmDialog, confirm] = useConfirm(
-    "Are you sure?",
-    "You are about to delete this account."
+    "Delete this account?",
+    "Its transactions are deleted with it. This can't be undone.",
   );
 
   const deleteMutation = useDeleteAccount(id);
@@ -38,7 +38,7 @@ export const Actions = ({ id }: Props) => {
       <ConfirmDialog />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="size-8 p-0">
+          <Button variant="ghost" className="size-8 p-0" aria-label="Row actions">
             <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>

@@ -8,7 +8,6 @@ import { DatePicker } from "@/components/date-picker";
 import { Select } from "@/components/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { insertTransactionSchema } from "@/db/schema";
 import { AmountInput } from "@/components/amount-input";
 import {
   Form,
@@ -16,24 +15,23 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
-import { convertAmountToMiliunits } from "@/lib/utils";
+import { parseAmount } from "@/lib/import/amounts";
+import { toDateKey } from "@/lib/dates";
+import { type TransactionInput } from "@/lib/schemas";
 
 const formSchema = z.object({
-  accountId: z.string(),
-  date: z.coerce.date(),
+  accountId: z.string({ error: "Choose an account" }).min(1, "Choose an account"),
+  date: z.coerce.date({ error: "Pick a date" }),
   categoryId: z.string().nullable().optional(),
-  payee: z.string(),
-  amount: z.string(),
+  payee: z.string({ error: "Payee is required" }).trim().min(1, "Payee is required").max(200),
+  amount: z.string({ error: "Amount is required" }).min(1, "Amount is required"),
   notes: z.string().nullable().optional(),
 });
 
-const apiSchema = insertTransactionSchema.omit({
-  id: true,
-});
-
 type FormValues = z.input<typeof formSchema>;
-type ApiFormValues = z.input<typeof apiSchema>;
+type ApiFormValues = TransactionInput;
 
 type Props = {
   id?: string;
@@ -64,12 +62,17 @@ export const TransactionForm = ({
   });
 
   const handleSubmit = (values: FormValues) => {
-    const amount = parseFloat(values.amount);
-    const amountInMiliunits = convertAmountToMiliunits(amount);
+    // Same exact, string-based parser as the CSV import: no float rounding.
+    const amount = parseAmount(values.amount);
+    if (!amount.ok) {
+      form.setError("amount", { message: amount.error });
+      return;
+    }
 
     onSubmit({
       ...values,
-      amount: amountInMiliunits,
+      date: toDateKey(values.date as Date),
+      amount: amount.milliunits,
       categoryId: values.categoryId || undefined,
     });
   };
@@ -89,6 +92,7 @@ export const TransactionForm = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Date</FormLabel>
               <FormControl>
                 <DatePicker
                   value={field.value as Date | undefined}
@@ -96,6 +100,7 @@ export const TransactionForm = ({
                   disabled={disabled}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -116,6 +121,7 @@ export const TransactionForm = ({
                   disabled={disabled}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -136,6 +142,7 @@ export const TransactionForm = ({
                   disabled={disabled}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -153,6 +160,7 @@ export const TransactionForm = ({
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -170,6 +178,7 @@ export const TransactionForm = ({
                   placeholder="0.00"
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -188,6 +197,7 @@ export const TransactionForm = ({
                   placeholder="Optional notes"
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

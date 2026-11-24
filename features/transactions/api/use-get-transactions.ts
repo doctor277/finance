@@ -2,12 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
 import { client } from "@/lib/hono";
-import { convertAmountFromMiliunits } from "@/lib/utils";
+import { defaultRangeKeys } from "@/lib/dates";
+import { fromMilliunits } from "@/lib/utils";
 
 export const useGetTransactions = () => {
   const params = useSearchParams();
-  const from = params.get("from") || "";
-  const to = params.get("to") || "";
+  const fallback = defaultRangeKeys();
+  const from = params.get("from") || fallback.from;
+  const to = params.get("to") || fallback.to;
   const accountId = params.get("accountId") || "";
 
   const query = useQuery({
@@ -28,7 +30,7 @@ export const useGetTransactions = () => {
       const { data } = await response.json();
       return data.map((transaction) => ({
         ...transaction,
-        amount: convertAmountFromMiliunits(transaction.amount),
+        amount: fromMilliunits(transaction.amount),
       }));
     },
   });

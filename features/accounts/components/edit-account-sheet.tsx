@@ -8,7 +8,7 @@ import { useEditAccount } from "@/features/accounts/api/use-edit-account";
 import { useDeleteAccount } from "@/features/accounts/api/use-delete-account";
 
 import { useConfirm } from "@/hooks/use-confirm";
-import { insertAccountSchema } from "@/db/schema";
+import { nameSchema } from "@/lib/schemas";
 import {
   Sheet,
   SheetContent,
@@ -17,9 +17,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const formSchema = insertAccountSchema.pick({
-  name: true,
-});
+const formSchema = nameSchema;
 
 type FormValues = z.input<typeof formSchema>;
 
@@ -27,8 +25,8 @@ export const EditAccountSheet = () => {
   const { isOpen, onClose, id } = useOpenAccount();
 
   const [ConfirmDialog, confirm] = useConfirm(
-    "Are you sure?",
-    "You are about to delete this account."
+    "Delete this account?",
+    "Its transactions are deleted with it. This can't be undone.",
   );
 
   const accountQuery = useGetAccount(id);
@@ -74,7 +72,7 @@ export const EditAccountSheet = () => {
         <SheetContent className="space-y-4">
           <SheetHeader>
             <SheetTitle>Edit account</SheetTitle>
-            <SheetDescription>Edit an existing account</SheetDescription>
+            <SheetDescription>Changes are saved when you click Save changes.</SheetDescription>
           </SheetHeader>
           {isLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">

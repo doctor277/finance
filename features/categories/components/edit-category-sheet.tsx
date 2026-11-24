@@ -8,7 +8,7 @@ import { useEditCategory } from "@/features/categories/api/use-edit-category";
 import { useDeleteCategory } from "@/features/categories/api/use-delete-category";
 
 import { useConfirm } from "@/hooks/use-confirm";
-import { insertCategorySchema } from "@/db/schema";
+import { nameSchema } from "@/lib/schemas";
 import {
   Sheet,
   SheetContent,
@@ -17,9 +17,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const formSchema = insertCategorySchema.pick({
-  name: true,
-});
+const formSchema = nameSchema;
 
 type FormValues = z.input<typeof formSchema>;
 
@@ -27,8 +25,8 @@ export const EditCategorySheet = () => {
   const { isOpen, onClose, id } = useOpenCategory();
 
   const [ConfirmDialog, confirm] = useConfirm(
-    "Are you sure?",
-    "You are about to delete this category."
+    "Delete this category?",
+    "Transactions in it become uncategorized. This can't be undone.",
   );
 
   const categoryQuery = useGetCategory(id);
@@ -74,7 +72,7 @@ export const EditCategorySheet = () => {
         <SheetContent className="space-y-4">
           <SheetHeader>
             <SheetTitle>Edit category</SheetTitle>
-            <SheetDescription>Edit an existing category</SheetDescription>
+            <SheetDescription>Changes are saved when you click Save changes.</SheetDescription>
           </SheetHeader>
           {isLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">
