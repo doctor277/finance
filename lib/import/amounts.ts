@@ -83,6 +83,10 @@ export function parseAmount(raw: string, decimal: DecimalSeparator = "."): Amoun
     return { ok: false, error: `"${original}" is too large (max ${formatMax()})` };
   }
 
+  if (fracPart.length === 3) {
+    warnings.push(`"${original}" has 3 decimal places; check the decimal separator`);
+  }
+
   let fraction = fracPart;
   let roundUp = false;
   if (fraction.length > 3) {
@@ -151,7 +155,9 @@ export function detectDecimalSeparator(samples: string[]): DecimalSeparator {
   let dot = 0;
   for (const raw of samples) {
     const s = raw.replace(CURRENCY, "").replace(/[()\s]/g, "").replace(/(DR|CR)$/i, "");
-    if (/\d\.\d{3},\d{1,2}-?$/.test(s) || /^-?\d+,\d{1,2}-?$/.test(s)) comma++;
+    // "1.200" (a whole amount with a dot thousands separator) also points to a decimal
+    // comma: dot-decimal banks print 2 decimals, so it is unlikely to mean $1.20.
+    if (/\d\.\d{3},\d{1,2}-?$/.test(s) || /^-?\d+,\d{1,2}-?$/.test(s) || /^-?\d{1,3}(\.\d{3})+-?$/.test(s)) comma++;
     else if (/\d,\d{3}\.\d{1,2}-?$/.test(s) || /^-?\d+\.\d{1,2}-?$/.test(s)) dot++;
   }
   return comma > dot ? "," : ".";

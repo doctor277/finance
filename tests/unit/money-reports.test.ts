@@ -113,6 +113,6 @@ describe("report helpers", () => {
     const csv = buildTransactionsCsv([
       { date: "2026-01-01", account: "Chq", category: null, payee: "=cmd()", amount: -12_500, notes: "@x" },
     ]);
-    expect(csv.split("\r\n")[1]).toBe(`2026-01-01,Chq,Uncategorized,"'=cmd()",-12.50,"'@x"`);
+    expect(csv.split("\r\n")[1]).toBe("2026-01-01,Chq,Uncategorized,'=cmd(),-12.50,'@x");
   });
 });

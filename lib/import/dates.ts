@@ -33,7 +33,12 @@ const toKey = (y: number, m: number, d: number): string | null => {
   return isDateKey(key) ? key : null;
 };
 
-const fullYear = (y: string) => (y.length === 2 ? 2000 + Number(y) : Number(y));
+/** Two-digit years: 20yy up to next year, otherwise 19yy ("99" is 1999, not 2099). */
+const fullYear = (y: string) => {
+  if (y.length !== 2) return Number(y);
+  const candidate = 2000 + Number(y);
+  return candidate <= new Date().getFullYear() + 1 ? candidate : candidate - 100;
+};
 
 /** Why a date failed, so the preview can say something more useful than "invalid". */
 export type DateParseResult =

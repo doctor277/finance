@@ -1,6 +1,7 @@
 import { addMonths, format } from "date-fns";
 import Papa from "papaparse";
 
+import { escapeCsvCell } from "@/lib/csv-safety";
 import { fromDateKey } from "@/lib/dates";
 import { milliunitsToDecimal } from "@/lib/utils";
 
@@ -61,13 +62,12 @@ export function buildTransactionsCsv(rows: ExportRow[]): string {
       fields: ["Date", "Account", "Category", "Payee", "Amount", "Notes"],
       data: rows.map((r) => [
         r.date,
-        r.account,
-        r.category ?? "Uncategorized",
-        r.payee,
-        milliunitsToDecimal(r.amount),
-        r.notes ?? "",
+        escapeCsvCell(r.account),
+        escapeCsvCell(r.category ?? "Uncategorized"),
+        escapeCsvCell(r.payee),
+        milliunitsToDecimal(r.amount), // always a plain number
+        escapeCsvCell(r.notes ?? ""),
       ]),
     },
-    { escapeFormulae: /^([=@\t\r]|[+-][^\d.,\s])/ },
   );
 }

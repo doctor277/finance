@@ -46,11 +46,16 @@ export function parseCsv(text: string): ParsedFile {
   const firstLooksLikeData = (cells: string[]) =>
     cells.some(looksLikeDate) && cells.some((c) => looksLikeAmount(c) && !looksLikeDate(c));
 
-  let headerIndex = nonBlank.slice(0, 15).findIndex((r) => looksLikeHeaderRow(r.cells));
+  // Only rows before the first data-looking row can be the header. Otherwise a data
+  // row whose text happens to match header words ("Deposit", "Reference") would be
+  // promoted to header and every row above it silently dropped as "preamble".
+  const scan = nonBlank.slice(0, 15);
+  const firstDataIndex = scan.findIndex((r) => firstLooksLikeData(r.cells));
+  const searchEnd = firstDataIndex === -1 ? scan.length : firstDataIndex;
+  let headerIndex = scan.slice(0, searchEnd).findIndex((r) => looksLikeHeaderRow(r.cells));
   let hasHeader = true;
 
   if (headerIndex === -1) {
-    const firstDataIndex = nonBlank.slice(0, 15).findIndex((r) => firstLooksLikeData(r.cells));
     if (firstDataIndex !== -1) {
       hasHeader = false;
       headerIndex = firstDataIndex; // rows before the first data row are preamble

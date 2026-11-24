@@ -1,5 +1,6 @@
 import Papa from "papaparse";
 
+import { escapeCsvCell } from "@/lib/csv-safety";
 import type { ParsedRow } from "@/lib/import/types";
 
 export type ImportSummary = {
@@ -50,11 +51,11 @@ export function reasonFor(row: ParsedRow): string {
  */
 export function buildSkippedRowsCsv(headers: string[], skipped: SkippedRow[]): string {
   return Papa.unparse({
-    fields: ["Line", "Reason", ...headers],
-    data: skipped.map(({ row, reason }) => [String(row.line), reason, ...row.raw.slice(0, headers.length)]),
-  }, {
-    // Neutralize spreadsheet formulas (CSV injection) without mangling negative
-    // amounts like "-12.50": only "=", "@", tab/CR, or +/- followed by a non-number.
-    escapeFormulae: /^([=@\t\r]|[+-][^\d.,\s])/,
+    fields: ["Line", "Reason", ...headers.map(escapeCsvCell)],
+    data: skipped.map(({ row, reason }) => [
+      String(row.line),
+      escapeCsvCell(reason),
+      ...row.raw.slice(0, headers.length).map(escapeCsvCell),
+    ]),
   });
 }
