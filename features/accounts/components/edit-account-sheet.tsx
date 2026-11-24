@@ -72,7 +72,7 @@ export const EditAccountSheet = () => {
         <SheetContent className="space-y-4">
           <SheetHeader>
             <SheetTitle>Edit account</SheetTitle>
-            <SheetDescription>Edit an existing account</SheetDescription>
+            <SheetDescription>Changes are saved when you click Save changes.</SheetDescription>
           </SheetHeader>
           {isLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">

@@ -6,7 +6,7 @@ import { Menu } from "lucide-react";
 import { ClerkLoaded, UserButton } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "./logo";
 import { NavLinks } from "./nav";
 
@@ -52,6 +52,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
             <SheetTitle className="mb-6 px-3 text-sidebar-foreground">
               <Logo />
             </SheetTitle>
+            <SheetDescription className="sr-only">Main navigation</SheetDescription>
             <NavLinks onNavigate={() => setMenuOpen(false)} />
           </SheetContent>
         </Sheet>

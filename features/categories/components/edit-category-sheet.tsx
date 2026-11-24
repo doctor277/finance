@@ -72,7 +72,7 @@ export const EditCategorySheet = () => {
         <SheetContent className="space-y-4">
           <SheetHeader>
             <SheetTitle>Edit category</SheetTitle>
-            <SheetDescription>Edit an existing category</SheetDescription>
+            <SheetDescription>Changes are saved when you click Save changes.</SheetDescription>
           </SheetHeader>
           {isLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">

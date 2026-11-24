@@ -117,7 +117,7 @@ export const EditTransactionSheet = () => {
         <SheetContent className="space-y-4">
           <SheetHeader>
             <SheetTitle>Edit transaction</SheetTitle>
-            <SheetDescription>Edit an existing transaction</SheetDescription>
+            <SheetDescription>Changes are saved when you click Save changes.</SheetDescription>
           </SheetHeader>
           {isLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">
